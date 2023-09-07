@@ -25,13 +25,13 @@ class Cushion:
         self.color = []
         self.ean_13 = []
         self.new_number = []
-        for i in range(len(bartender_entries)):
-            this_entry = bartender_entries[i].split(";")
-            self.old_number.append(this_entry[0])
-            self.item_name.append(this_entry[1])
-            self.color.append(this_entry[2])
-            self.ean_13.append(this_entry[3])
-            self.new_number.append(this_entry[4][:-1])
+        for entry in bartender_entries:
+            split_entry = entry.split(";")
+            self.old_number.append(split_entry[0])
+            self.item_name.append(split_entry[1])
+            self.color.append(split_entry[2])
+            self.ean_13.append(split_entry[3])
+            self.new_number.append(split_entry[4][:-1])
 
         correction_entries = []
         try:
@@ -46,23 +46,26 @@ class Cushion:
         self.corrected_barcodes = []
         self.ask_for_color = []
         self.alt_color = []
-        for i in range(len(correction_entries)):
-            this_entry = correction_entries[i].split(";")
-            self.wrong_barcodes.append(this_entry[0])
-            self.corrected_barcodes.append(this_entry[1])
-            self.ask_for_color.append((bool(int(this_entry[2]))))
-            self.alt_color.append(this_entry[3][:-1])
+        for entry in correction_entries:
+            split_entry = entry.split(";")
+            self.wrong_barcodes.append(split_entry[0])
+            self.corrected_barcodes.append(split_entry[1])
+            self.ask_for_color.append((bool(int(split_entry[2]))))
+            self.alt_color.append(split_entry[3][:-1])
+        
+        self.barcode_has_been_entered = False
+        self.correct_barcode = ""
 
     # Returns the index of the barcode in question in .ean_13[]
     # This index corresponds to indices in all other item property lists
     def get_index_by_barcode(self, barcode):
-        for i in range(len(self.ean_13)):
-            if self.ean_13[i] == barcode:
+        for i, checked_barcode in enumerate(self.ean_13):
+            if checked_barcode == barcode:
                 return i
 
     def get_index_by_old_number(self, old_number):
-        for i in range(len(self.old_number)):
-            if self.old_number[i] == old_number:
+        for i, number in enumerate(self.old_number):
+            if number == old_number:
                 return i
 
     def get_old_number(self, index):
@@ -85,23 +88,23 @@ class Cushion:
 
     # Returns True if the barcode is listed in the BarTender database file
     def barcode_is_valid(self, barcode):
-        for i in range(len(self.ean_13)):
-            if self.ean_13[i] == barcode:
+        for checked_barcode in self.ean_13:
+            if checked_barcode == barcode:
                 return True
         return False
 
     # Returns True if the barcode is known to potentially be incorrect
     def barcode_needs_correcting(self, barcode):
-        for i in range(len(self.wrong_barcodes)):
-            if self.wrong_barcodes[i] == barcode:
+        for checked_barcode in self.wrong_barcodes:
+            if checked_barcode == barcode:
                 return True
         return False
 
     # Takes a potentially incorrect barcode as input and returns the correct one
     # In case of doubt (a correct barcode on a potentially incorrect item) asks the user to confirm the color
     def corrected_barcode(self, barcode):
-        for i in range(len(self.wrong_barcodes)):
-            if self.wrong_barcodes[i] == barcode:
+        for i, wrong_barcode in enumerate(self.wrong_barcodes):
+            if wrong_barcode == barcode:
                 if self.ask_for_color[i]:
                     use_alternative_color = askyesno("Vælg farve", f"Er varens farve {self.alt_color[i]}?")
                     if use_alternative_color:
@@ -109,34 +112,34 @@ class Cushion:
                     else:
                         return self.wrong_barcodes[i]
                 return self.corrected_barcodes[i]
+    
+    def set_barcode_to_use(self, barcode):
+        self.correct_barcode = barcode
 
-
-barcode_has_been_entered = False
-correct_barcode = ""
+    def get_barcode_to_use(self):
+        return self.correct_barcode
 
 
 # Reads the entered barcode, checks if it's correct, corrects it if it's not, and displays the item data
 def enter_barcode(barcode):
-    global barcode_has_been_entered
-    global correct_barcode
-    incorrect_barcode = ""
+    uncorrected_barcode = ""
     if cushions.barcode_needs_correcting(barcode):
-        incorrect_barcode = barcode
-        correct_barcode = cushions.corrected_barcode(barcode)
+        uncorrected_barcode = barcode
+        cushions.set_barcode_to_use(cushions.corrected_barcode(barcode))
     else:
-        correct_barcode = barcode
-    if cushions.barcode_is_valid(correct_barcode):
-        index = cushions.get_index_by_barcode(correct_barcode)
+        cushions.set_barcode_to_use(barcode)
+    if cushions.barcode_is_valid(cushions.get_barcode_to_use()):
+        index = cushions.get_index_by_barcode(cushions.get_barcode_to_use())
         item_name_label_text.config(text=cushions.get_item_name(index))
         color_label_text.config(text=cushions.get_color(index))
         old_number_label_text.config(text=cushions.get_old_number(index))
         new_number_label_text.config(text=cushions.get_new_number(index))
-        if incorrect_barcode == "" or incorrect_barcode == cushions.get_ean_13(index):
+        if uncorrected_barcode == "" or uncorrected_barcode == cushions.get_ean_13(index):
             ean13_label_text.config(text=cushions.get_ean_13(index))
         else:
-            ean13_label_text.config(text=f"{incorrect_barcode} rettes til {cushions.get_ean_13(index)}")
+            ean13_label_text.config(text=f"{uncorrected_barcode} rettes til {cushions.get_ean_13(index)}")
         number_entry_box.focus_set()
-        barcode_has_been_entered = True
+        cushions.barcode_has_been_entered = True
     else:
         if scan_entry_box.get() == "":
             messagebox.showerror(title="Fejl", message="Du mangler at scanne en vare.")
@@ -149,9 +152,7 @@ def enter_barcode(barcode):
 # If the barcode is valid sends a specified number of print jobs to the default printer, writes job details to the log
 # file and resets the window
 def print_barcode():
-    global barcode_has_been_entered
-    global correct_barcode
-    if not barcode_has_been_entered:
+    if not cushions.barcode_has_been_entered:
         enter_barcode(scan_entry_box.get())
     if not number_entry_box.get().isnumeric() or int(number_entry_box.get()) < 1 or int(number_entry_box.get()) > 105:
         messagebox.showerror(title="Fejl", message="Ugyldigt antal.\nSkal være mellem 1-105.")
@@ -160,11 +161,11 @@ def print_barcode():
             number_entry_box.focus_set()
         return
 
-    if cushions.barcode_is_valid(correct_barcode):
+    if cushions.barcode_is_valid(cushions.get_barcode_to_use()):
         try:
             for i in range(int(number_entry_box.get())):
-                os.startfile(f".\\Data\\PDF\\{correct_barcode}.pdf", "print")
-            write_to_log_file(correct_barcode)
+                os.startfile(f".\\Data\\PDF\\{cushions.get_barcode_to_use()}.pdf", "print")
+            write_to_log_file(cushions.get_barcode_to_use())
             scan_entry_box.delete(0, "end")
             number_entry_box.delete(0, "end")
             scan_entry_box.focus_set()
@@ -173,8 +174,8 @@ def print_barcode():
             old_number_label_text.config(text="")
             new_number_label_text.config(text="")
             ean13_label_text.config(text="")
-            barcode_has_been_entered = False
-            correct_barcode = ""
+            cushions.barcode_has_been_entered = False
+            cushions.set_barcode_to_use("")
         except FileNotFoundError:
             messagebox.showerror("Fejl", "PDF filen mangler.")
 

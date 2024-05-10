@@ -1,0 +1,153 @@
+﻿Nummer;Beskrivelse;Beskrivelse 2;EAN-13;HAY Varenr.
+005-812094/1009000;Palissade Dining Arm Chair Quilted Cushion;Olive textile;5710441272908;AB562-B281-AB70
+005-812094/1509000;Palissade Dining Arm Chair Quilted Cushion;Sky grey textile;5710441272915;AB562-B281-AB30
+005-812094/2009000;Palissade Dining Arm Chair Quilted Cushion;Anthracite textile;5710441272922;AB562-B281-AF12
+005-812094/AK78;Palissade Dining Arm Chair Quilted Cushion;Iron red textile;5710441316374;AB562-B281-AK78
+005-812095/1009000;Palissade Lounge Chair Low Quilted Cushion;Olive textile;5710441272939;AB562-B293-AB70
+005-812095/1509000;Palissade Lounge Chair Low Quilted Cushion;Sky grey textile;5710441272946;AB562-B293-AB30
+005-812095/2009000;Palissade Lounge Chair Low Quilted Cushion;Anthracite textile;5710441272953;AB562-B293-AF12
+005-812095/AK78;Palissade Lounge Chair Low Quilted Cushion;Iron red textile;5710441316459;AB562-B293-AK78
+005-812096/1009000;Palissade Lounge Chair High Quilted Cushion;Olive textile;5710441272960;AB562-B291-AB70
+005-812096/1509000;Palissade Lounge Chair High Quilted Cushion;Sky grey textile;5710441272977;AB562-B291-AB30
+005-812096/2009000;Palissade Lounge Chair High Quilted Cushion;Anthracite textile;5710441272984;AB562-B291-AF12
+005-812096/AK78;Palissade Lounge Chair High Quilted Cushion;Iron red textile;5710441316497;AB562-B291-AK78
+005-812097/1009000;Palissade Lounge Sofa Quilted Cushion;Olive textile;5710441272991;AB562-B287-AB70
+005-812097/1509000;Palissade Lounge Sofa Quilted Cushion;Sky grey textile;5710441273004;AB562-B287-AB30
+005-812097/2009000;Palissade Lounge Sofa Quilted Cushion;Anthracite textile;5710441273011;AB562-B287-AF12
+005-812097/AK78;Palissade Lounge Sofa Quilted Cushion;Iron red textile;5710441316565;AB562-B287-AK78
+005-812098/1009000;Palissade Dining Bench Quilted Cushion;Olive textile;5710441273035;AB562-B283-AB70
+005-812098/1509000;Palissade Dining Bench Quilted Cushion;Sky grey textile;5710441273042;AB562-B283-AB30
+005-812098/2009000;Palissade Dining Bench Quilted Cushion;Anthracite textile;5710441273059;AB562-B283-AF12
+005-812098/AK78;Palissade Dining Bench Quilted Cushion;Iron red textile;5710441316602;AB562-B283-AK78
+005-812099/1009000;Palissade Chaise Longue Quilted Cushion;Olive textile;5610441290516;AB562-B289-AB70
+005-812099/1509000;Palissade Chaise Longue Quilted Cushion;Sky grey textile;5610441290523;AB562-B289-AB30
+005-812099/2009000;Palissade Chaise Longue Quilted Cushion;Anthracite textile;5610441290530;AB562-B289-AF12
+005-812099/AK78;Palissade Chaise Longue Quilted Cushion;Iron red textile;5710441316688;AB562-B289-AK78
+005-812100/1009000;Palissade Chaise Longue Headrest Cushion;Olive textile;5610441290547;AB561-B289-AB70
+005-812100/1509000;Palissade Chaise Longue Headrest Cushion;Sky grey textile;5610441290554;AB561-B289-AB30
+005-812100/2009000;Palissade Chaise Longue Headrest Cushion;Anthracite textile;5610441290561;AB561-B289-AF12
+005-812100/AK78;Palissade Chaise Longue Headrest Cushion;Iron red textile;5710441316800;AB561-B289-AK78
+005-812221/1009000;Palissade Chair & Arm Chair Seat Cushion;Olive textile;5710441252948;AB560-B279-AB70
+005-812221/1509000;Palissade Chair & Arm Chair Seat Cushion;Sky grey textile;5710441252955;AB560-B279-AB30
+005-812221/2009000;Palissade Chair & Arm Chair Seat Cushion;Anthracite textile;5710441252962;AB560-B279-AF12
+005-812221/AK78;Palissade Chair & Arm Chair Seat Cushion;Iron red textile;5710441316725;AB560-B279-AK78
+005-812223/1009000;Palissade Lounge Chair High & Low Seat Cushion;Olive textile;5710441252979;AB560-B285-AB70
+005-812223/1509000;Palissade Lounge Chair High & Low Seat Cushion;Sky grey textile;5710441252986;AB560-B285-AB30
+005-812223/2009000;Palissade Lounge Chair High & Low Seat Cushion;Anthracite textile;5710441252993;AB560-B285-AF12
+005-812223/AK78;Palissade Lounge Chair High & Low Seat Cushion;Iron red textile;5710441316763;AB560-B285-AK78
+005-812225/1009000;Palissade Lounge Sofa Seat Cushion;Olive textile;5710441253006;AB560-B287-AB70
+005-812225/1509000;Palissade Lounge Sofa Seat Cushion;Sky grey textile;5710441253013;AB560-B287-AB30
+005-812225/2009000;Palissade Lounge Sofa Seat Cushion;Anthracite textile;5710441253020;AB560-B287-AF12
+005-812225/AK78;Palissade Lounge Sofa Seat Cushion;Iron red textile;5710441316848;AB560-B287-AK78
+005-812227/1009000;Palissade Dining Arm Chair Seat Cushion;Olive textile;5710441253037;AB560-B281-AB70
+005-812227/1509000;Palissade Dining Arm Chair Seat Cushion;Sky grey textile;5710441253044;AB560-B281-AB30
+005-812227/2009000;Palissade Dining Arm Chair Seat Cushion;Anthracite textile;5710441253051;AB560-B281-AF12
+005-812227/AK78;Palissade Dining Arm Chair Seat Cushion;Iron red textile;5710441316886;AB560-B281-AK78
+005-812229/1009000;Palissade Dining Bench Seat Cushion;Olive textile;5710441253068;AB560-B283-AB70
+005-812229/1509000;Palissade Dining Bench Seat Cushion;Sky grey textile;5710441253075;AB560-B283-AB30
+005-812229/2009000;Palissade Dining Bench Seat Cushion;Anthracite textile;5710441253082;AB560-B283-AF12
+005-812229/AK78;Palissade Dining Bench Seat Cushion;Iron red textile;5710441316923;AB560-B283-AK78
+005-943219/1009000;Palissade Park Dining Bench Cushion IN;Olive textile;5710441298397;AB725-B545-AH67
+005-943219/1509000;Palissade Park Dining Bench Cushion IN;Sky grey textile;5710441298403;AB725-B545-AH68
+005-943219/2009000;Palissade Park Dining Bench Cushion IN;Anthracite textile;5710441298410;AB725-B545-AH69
+005-943219/AK78;Palissade Park Dining Bench Cushion IN;Iron red textile;5710441331087;AB725-B545-AI33
+005-943220/1009000;Palissade Park Dining Bench Cushion OUT;Olive textile;5710441298427;AB725-B547-AH67
+005-943220/1509000;Palissade Park Dining Bench Cushion OUT;Sky grey textile;5710441298434;AB725-B547-AH68
+005-943220/2009000;Palissade Park Dining Bench Cushion OUT;Anthracite textile;5710441298441;AB725-B547-AH69
+005-943220/AK78;Palissade Park Dining Bench Cushion OUT;Iron red textile;5710441331117;AB725-B547-AI33
+005-943232/1009000;Palissade Park Bench Cushion;Olive textile;5710441298274;AB726-B581-AH67
+005-943232/1509000;Palissade Park Bench Cushion;Sky grey textile;5710441298281;AB726-B581-AH68
+005-943232/2009000;Palissade Park Bench Cushion;Anthracite textile;5710441298298;AB726-B581-AH69
+005-943232/AK78;Palissade Park Bench Cushion;Iron red textile;5710441331155;AB726-B581-AI33
+005-943235/AK78-FR;CMHR Palissade Park Dining Bench Cushion IN/OUT  Set of 2;Iron red textile FR;5710441327912;AB560-C974-AI34
+005-943236/AK78-FR;CMHR Palissade Park Dining Bench Cushion IN/IN  Set of 2;Iron red textile FR;5710441327905;AB560-C976-AI34
+005-943237/AK78-FR;CMHR Palissade Park Dining Bench Cushion OUT/OUT  Set of 2;Iron red textile FR;5710441327929;AB560-C978-AI34
+005-943238/3009000;CMHR Palissade Park Dining Bench Cushion IN;Olive textile FR;5710441299677;AB725-B546-AH70
+005-943238/3509000;CMHR Palissade Park Dining Bench Cushion IN;Sky grey textile FR;5710441299684;AB725-B546-AH71
+005-943238/4009000;CMHR Palissade Park Dining Bench Cushion IN;Anthracite textile FR;5710441299691;AB725-B546-AH72
+005-943238/AK78-FR;CMHR Palissade Park Dining Bench Cushion IN;Iron red textile FR;5710441331131;AB725-B546-AI34
+005-943239/3009000;CMHR Palissade Park Dining Bench Cushion OUT;Olive textile FR;5710441299707;AB725-B548-AH70
+005-943239/3509000;CMHR Palissade Park Dining Bench Cushion OUT;Sky grey textile FR;5710441299714;AB725-B548-AH71
+005-943239/4009000;CMHR Palissade Park Dining Bench Cushion OUT;Anthracite textile FR;5710441299721;AB725-B548-AH72
+005-943239/AK78-FR;CMHR Palissade Park Dining Bench Cushion OUT;Iron red textile FR;5710441331148;AB725-B548-AI34
+005-943240/AK78-FR;CMHR Palissade Park Bench Cushion Set of 2;Iron red textile FR;5710441327899;AB560-C980-AI34
+005-943241/3009000;CMHR Palissade Park Bench Cushion;Olive textile FR;5710441299738;AB726-B582-AH70
+005-943241/3509000;CMHR Palissade Park Bench Cushion;Sky grey textile FR;5710441299745;AB726-B582-AH71
+005-943241/4009000;CMHR Palissade Park Bench Cushion;Anthracite textile FR;5710441299752;AB726-B582-AH72
+005-943241/AK78-FR;CMHR Palissade Park Bench Cushion;Iron red textile FR;5710441331179;AB726-B582-AI34
+005-AB560-B280-AB70;Seat Cushion for Palissade-Chair and Armchair CMHR;Olive textile FR;5710441350521;AB560-B280-AH70
+005-AB560-B280-AB30;Seat Cushion for Palissade-Chair and Armchair CMHR;Sky grey textile FR;5710441350545;AB560-B280-AH71
+005-AB560-B280-AF12;Seat Cushion for Palissade-Chair and Armchair CMHR;Anthracite textile FR;5710441350552;AB560-B280-AH72
+005-AB560-B280-AK78;Seat Cushion for Palissade-Chair and Armchair CMHR;Iron red textile FR;5710441350590;AB560-B280-AI34
+005-AB560-B282-AB70;Seat Cushion for Palissade-Dining Armchair CMHR;Olive textile FR;5710441350569;AB560-B282-AH70
+005-AB560-B282-AB30;Seat Cushion for Palissade-Dining Armchair CMHR;Sky grey textile FR;5710441350583;AB560-B282-AH71
+005-AB560-B282-AF12;Seat Cushion for Palissade-Dining Armchair CMHR;Anthracite textile FR;5710441350408;AB560-B282-AH72
+005-AB560-B282-AK78;Seat Cushion for Palissade-Dining Armchair CMHR;Iron red textile FR;5710441350439;AB560-B282-AI34
+005-AB560-B284-AB70;Seat Cushion for Palissade-Dining Bench CMHR;Olive textile FR;5710441350415;AB560-B284-AH70
+005-AB560-B284-AB30;Seat Cushion for Palissade-Dining Bench CMHR;Sky grey textile FR;5710441350422;AB560-B284-AH71
+005-AB560-B284-AF12;Seat Cushion for Palissade-Dining Bench CMHR;Anthracite textile FR;5710441350446;AB560-B284-AH72
+005-AB560-B284-AK78;Seat Cushion for Palissade-Dining Bench CMHR;Iron red textile FR;5710441350477;AB560-B284-AI34
+005-AB560-B286-AB70;Seat Cushion for Palissade-Lounge Chair High & Low CMHR;Olive textile FR;5710441350453;AB560-B286-AH70
+005-AB560-B286-AB30;Seat Cushion for Palissade-Lounge Chair High & Low CMHR;Sky grey textile FR;5710441350460;AB560-B286-AH71
+005-AB560-B286-AF12;Seat Cushion for Palissade-Lounge Chair High & Low CMHR;Anthracite textile FR;5710441350484;AB560-B286-AH72
+005-AB560-B286-AK78;Seat Cushion for Palissade-Lounge Chair High & Low CMHR;Iron red textile FR;5710441350491;AB560-B286-AI34
+005-AB560-B288-AB70;Seat Cushion for Palissade-Lounge Sofa CMHR;Olive textile FR;5710441350507;AB560-B288-AH70
+005-AB560-B288-AB30;Seat Cushion for Palissade-Lounge Sofa CMHR;Sky grey textile FR;5710441350514;AB560-B288-AH71
+005-AB560-B288-AF12;Seat Cushion for Palissade-Lounge Sofa CMHR;Anthracite textile FR;5710441350538;AB560-B288-AH72
+005-AB560-B288-AK78;Seat Cushion for Palissade-Lounge Sofa CMHR;Iron red textile FR;5710441350576;AB560-B288-AI34
+005-AB561-B290-AB70;Headrest Cushion for Palissade-Chaise Longue CMHR;Olive textile FR;5710441350613;AB561-B290-AH70
+005-AB561-B290-AB30;Headrest Cushion for Palissade-Chaise Longue CMHR;Sky grey textile FR;5710441350620;AB561-B290-AH71
+005-AB561-B290-AF12;Headrest Cushion for Palissade-Chaise Longue CMHR;Anthracite textile FR;5710441350637;AB561-B290-AH72
+005-AB561-B290-AK78;Headrest Cushion for Palissade-Chaise Longue CMHR;Iron red textile FR;5710441350606;AB561-B290-AI34
+005-AB562-B282-AB70;Quilted Cushion for Palissade-Dining Armchair CMHR;Olive textile FR;5710441350736;AB562-B282-AH70
+005-AB562-B282-AB30;Quilted Cushion for Palissade-Dining Armchair CMHR;Sky grey textile FR;5710441350750;AB562-B282-AH71
+005-AB562-B282-AF12;Quilted Cushion for Palissade-Dining Armchair CMHR;Anthracite textile FR;5710441350644;AB562-B282-AH72
+005-AB562-B282-AK78;Quilted Cushion for Palissade-Dining Armchair CMHR;Iron red textile FR;5710441350675;AB562-B282-AI34
+005-AB562-B284-AB70;Quilted Cushion for Palissade-Dining Bench CMHR;Olive textile FR;5710441350651;AB562-B284-AH70
+005-AB562-B284-AB30;Quilted Cushion for Palissade-Dining Bench CMHR;Sky grey textile FR;5710441350668;AB562-B284-AH71
+005-AB562-B284-AF12;Quilted Cushion for Palissade-Dining Bench CMHR;Anthracite textile FR;5710441350682;AB562-B284-AH72
+005-AB562-B284-AK78;Quilted Cushion for Palissade-Dining Bench CMHR;Iron red textile FR;5710441350699;Iron red textile FR;AB562-B284-AI34
+005-AB562-B288-AB70;Quilted Cushion for Palissade-Lounge Sofa CMHR;Olive textile FR;5710441350705;AB562-B288-AH70
+005-AB562-B288-AB30;Quilted Cushion for Palissade-Lounge Sofa CMHR;Sky grey textile FR;5710441350712;AB562-B288-AH71
+005-AB562-B288-AF12;Quilted Cushion for Palissade-Lounge Sofa CMHR;Anthracite textile FR;5710441350729;Anthracite textile FR;AB562-B288-AH72
+005-AB562-B288-AK78;Quilted Cushion for Palissade-Lounge Sofa CMHR;Iron red textile FR;5710441350743;AB562-B288-AI34
+005-AB562-B290-AB70;Quilted Cushion for Palissade-Chaise Longue CMHR;Olive textile FR;5710441350859;AB562-B290-AH70
+005-AB562-B290-AB30;Quilted Cushion for Palissade-Chaise Longue CMHR;Sky grey textile FR;5710441350866;AB562-B290-AH71
+005-AB562-B290-AF12;Quilted Cushion for Palissade-Chaise Longue CMHR;Anthracite textile FR;5710441350873;AB562-B290-AH72
+005-AB562-B290-AK78;Quilted Cushion for Palissade-Chaise Longue CMHR;Iron red textile FR;5710441350842;AB562-B290-AI34
+005-AB562-B292-AB70;Quilted Cushion for Palissade-Lounge Chair High CMHR;Olive textile FR;5710441350781;AB562-B292-AH70
+005-AB562-B292-AB30;Quilted Cushion for Palissade-Lounge Chair High CMHR;Sky grey textile FR;5710441350804;AB562-B292-AH71
+005-AB562-B292-AF12;Quilted Cushion for Palissade-Lounge Chair High CMHR;Anthracite textile FR;5710441350828;AB562-B292-AH72
+005-AB562-B292-AK78;Quilted Cushion for Palissade-Lounge Chair High CMHR;Iron red textile FR;5710441350767;AB562-B292-AI34
+005-AB562-B294-AB70;Quilted Cushion for Palissade-Lounge Chair Low CMHR;Olive textile FR;5710441350798;AB562-B294-AH70
+005-AB562-B294-AB30;Quilted Cushion for Palissade-Lounge Chair Low CMHR;Sky grey textile FR;5710441350811;AB562-B294-AH71
+005-AB562-B294-AF12;Quilted Cushion for Palissade-Lounge Chair Low CMHR;Anthracite textile FR;5710441350835;AB562-B294-AH72
+005-AB562-B294-AK78;Quilted Cushion for Palissade-Lounge Chair Low CMHR;Iron red textile FR;5710441350774;AB562-B294-AI34
+005-AE014-B280-AH70;Soft Quilted Cushion for Palissade-Chair and Armchair CMHR;Olive textile Interliner;5710441350965;AE014-B280-AO42
+005-AE014-B280-AH71;Soft Quilted Cushion for Palissade-Chair and Armchair CMHR;Sky grey textile Interliner;5710441351016;AE014-B280-AO43
+005-AE014-B280-AH72;Soft Quilted Cushion for Palissade-Chair and Armchair CMHR;Anthracite textile Interliner;5710441351061;AE014-B280-AO44
+005-AE014-B280-AI34;Soft Quilted Cushion for Palissade-Chair and Armchair CMHR;Iron red textile Interliner;5710441351115;AE014-B280-AO45
+005-AE014-B282-AH70;Soft Quilted Cushion for Palissade-Dining Armchair CMHR;Olive textile Interliner;5710441350989;AE014-B282-AO42
+005-AE014-B282-AH71;Soft Quilted Cushion for Palissade-Dining Armchair CMHR;Sky grey textile Interliner;5710441351030;AE014-B282-AO43
+005-AE014-B282-AH72;Soft Quilted Cushion for Palissade-Dining Armchair CMHR;Anthracite textile Interliner;5710441351085;AE014-B282-AO44
+005-AE014-B282-AI34;Soft Quilted Cushion for Palissade-Dining Armchair CMHR;Iron red textile Interliner;5710441351139;AE014-B282-AO45
+005-AE014-B284-AH70;Soft Quilted Cushion for Palissade-Dining Bench CMHR;Olive textile Interliner;5710441350996;AE014-B284-AO42
+005-AE014-B284-AH71;Soft Quilted Cushion for Palissade-Dining Bench CMHR;Sky grey textile Interliner;5710441351047;AE014-B284-AO43
+005-AE014-B284-AH72;Soft Quilted Cushion for Palissade-Dining Bench CMHR;Anthracite textile Interliner;5710441351092;AE014-B284-AO44
+005-AE014-B284-AI34;Soft Quilted Cushion for Palissade-Dining Bench CMHR;Iron red textile Interliner;5710441351146;AE014-B284-AO45
+005-AE014-B288-AH70;Soft Quilted Cushion for Palissade-Lounge Sofa CMHR;Olive textile Interliner;5710441351009;AE014-B288-AO42
+005-AE014-B288-AH71;Soft Quilted Cushion for Palissade-Lounge Sofa CMHR;Sky grey textile Interliner;5710441351054;AE014-B288-AO43
+005-AE014-B288-AH72;Soft Quilted Cushion for Palissade-Lounge Sofa CMHR;Anthracite textile Interliner;5710441351108;AE014-B288-AO44
+005-AE014-B288-AI34;Soft Quilted Cushion for Palissade-Lounge Sofa CMHR;Iron red textile Interliner;5710441351153;AE014-B288-AO45
+005-AE014-B290-AH70;Soft Quilted Cushion for Palissade-Chaise Longue CMHR;Olive textile Interliner;5710441350972;AE014-B290-AO42
+005-AE014-B290-AH71;Soft Quilted Cushion for Palissade-Chaise Longue CMHR;Sky grey textile Interliner;5710441351023;AE014-B290-AO43
+005-AE014-B290-AH72;Soft Quilted Cushion for Palissade-Chaise Longue CMHR;Anthracite textile Interliner;5710441351078;AE014-B290-AO44
+005-AE014-B290-AI34;Soft Quilted Cushion for Palissade-Chaise Longue CMHR;Iron red textile Interliner;5710441351122;AE014-B290-AO45
+005-AE014-B292-AH70;Soft Quilted Cushion for Palissade-Lounge Chair High CMHR;Olive textile Interliner;5710441350880;AE014-B292-AO42
+005-AE014-B292-AH71;Soft Quilted Cushion for Palissade-Lounge Chair High CMHR;Sky grey textile Interliner;5710441350903;AE014-B292-AO43
+005-AE014-B292-AH72;Soft Quilted Cushion for Palissade-Lounge Chair High CMHR;Anthracite textile Interliner;5710441350927;AE014-B292-AO44
+005-AE014-B292-AI34;Soft Quilted Cushion for Palissade-Lounge Chair High CMHR;Iron red textile Interliner;5710441350941;AE014-B292-AO45
+005-AE014-B294-AH70;Soft Quilted Cushion for Palissade-Lounge Chair Low CMHR;Olive textile Interliner;5710441350897;AE014-B294-AO42
+005-AE014-B294-AH71;Soft Quilted Cushion for Palissade-Lounge Chair Low CMHR;Sky grey textile Interliner;5710441350910;AE014-B294-AO43
+005-AE014-B294-AH72;Soft Quilted Cushion for Palissade-Lounge Chair Low CMHR;Anthracite textile Interliner;5710441350934;AE014-B294-AO44
+005-AE014-B294-AI34;Soft Quilted Cushion for Palissade-Lounge Chair Low CMHR;Iron red textile Interliner;5710441350958;AE014-B294-AO45

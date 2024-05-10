@@ -27,7 +27,7 @@ class Cushion:
         self.new_number = []
         for entry in bartender_entries:
             split_entry = entry.split(";")
-            self.old_number.append(split_entry[0])
+            self.old_number.append(split_entry[0][4:])
             self.item_name.append(split_entry[1])
             self.color.append(split_entry[2])
             self.ean_13.append(split_entry[3])
@@ -182,7 +182,7 @@ def print_barcode():
 
 # Prints the item chosen from the dropdown menu in manual mode
 def print_manual():
-    old_number = "005-" + cushions_drop_down_list.get().split(" ")[0]
+    old_number = cushions_drop_down_list.get().split(" ")[0]
     barcode = cushions.get_ean_13(cushions.get_index_by_old_number(old_number))
 
     if not manual_number_entry_box.get().isnumeric() or int(manual_number_entry_box.get()) < 1 or int(
@@ -242,7 +242,7 @@ cushions_drop_down_entries = []
 
 for cushion in range(cushions.get_number_of_entries()):
     cushion_entry = ""
-    cushion_entry += cushions.get_old_number(cushion)[4:] + " - "
+    cushion_entry += cushions.get_old_number(cushion) + " - "
     cushion_entry += cushions.get_item_name(cushion) + " - "
     cushion_entry += cushions.get_color(cushion)
 
@@ -250,6 +250,8 @@ for cushion in range(cushions.get_number_of_entries()):
     cushion_entry = cushion_entry.replace("Palissade ", "")
     cushion_entry = cushion_entry.replace(" textile", "")
     cushion_entry = cushion_entry.replace(" foam", "")
+    cushion_entry = cushion_entry.replace(" for Palissade", "")
+    cushion_entry = cushion_entry.replace(" Interliner", "")
 
     cushions_drop_down_entries.append(cushion_entry)
 

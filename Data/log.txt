@@ -1,0 +1,22 @@
+2023-08-09 10:47:19: 1 x Palissade Park Dining Bench Cushion OUT, Iron red textile, 005-943220/AK78, AB725-B547-AI332023-08-10 09:47:50:  x Palissade Dining Armchair Quilted Cushion CMHR foam, Olive textile FR, 005-376191/3009000, AB562-B282-AB702023-08-10 09:47:52:  x Palissade Dining Armchair Quilted Cushion CMHR foam, Olive textile FR, 005-376191/3009000, AB562-B282-AB702023-08-10 09:47:59:  x Palissade Lounge Chair High & Low Seat Cushion CMHR foam, Sky grey textile FR, 005-376203/3509000, AB560-B286-AB302023-08-10 09:48:05:  x Palissade Chaise Longue Headrest Cushion, Iron red textile, 005-812100/AK78, AB561-B289-AK782023-08-10 09:48:12:  x CMHR Palissade Park Dining Bench Cushion IN/OUT  Set of 2, Iron red textile FR, 005-943235/AK78-FR, AB560-C974-AI342023-08-10 11:11:59:  x Palissade Dining Armchair Quilted Cushion CMHR foam, Anthracite textile FR, 005-376191/4009000, AB562-B282-AF12
+2023-08-10 11:12:19:  x Palissade Dining Armchair Quilted Cushion CMHR foam, Anthracite textile FR, 005-376191/4009000, AB562-B282-AF12
+2023-08-10 11:14:21:  x Palissade Lounge Chair Low Quilted Cushion CMHR foam, Olive textile FR, 005-376193/3009000, AB562-B294-AB70
+2023-08-10 11:14:25:  x Palissade Lounge Chair High Quilted Cushion CMHR foam, Olive textile FR, 005-376195/3009000, AB562-B292-AB70
+2023-08-11 12:15:57:  x Palissade Dining Bench Seat Cushion, Iron red textile, 005-812229/AK78, AB560-B283-AK78
+2023-08-11 12:16:06: 1 x Palissade Lounge Chair Low Quilted Cushion CMHR foam, Sky grey textile FR, 005-376193/3509000, AB562-B294-AB302023-08-11 12:18:20:  x Palissade Dining Bench Seat Cushion, Iron red textile, 005-812229/AK78, AB560-B283-AK78
+2023-08-11 12:18:44: 1 x Palissade Dining Armchair Quilted Cushion CMHR foam, Anthracite textile FR, 005-376191/4009000, AB562-B282-AF12 (manuel)
+2023-08-11 12:18:59: 1 x Palissade Dining Armchair Seat Cushion CMHR foam, Sky grey textile FR, 005-376207/3509000, AB560-B282-AB30 (manuel)
+2023-08-11 12:19:51:  x Palissade Dining Bench Seat Cushion, Iron red textile, 005-812229/AK78, AB560-B283-AK78
+2023-08-11 12:23:25: 1 x Palissade Lounge Sofa Seat Cushion, Iron red textile, 005-812225/AK78, AB560-B287-AK78
+2023-08-11 12:23:29: 1 x Palissade Lounge Chair Low Quilted Cushion CMHR foam, Anthracite textile FR, 005-376193/4009000, AB562-B294-AF12 (manuel)
+2023-08-11 12:37:19: 1 x Palissade Dining Bench Seat CushionSky grey textile005-812229/1509000AB560-B283-AB30
+2023-08-11 12:37:22: 1 x Palissade Lounge Chair Low Quilted Cushion CMHR foamIron red textile FR005-376193/AK78-FRAB562-B294-AK78 (manuel)
+2023-08-11 12:38:20: 1 x Palissade Dining Bench Seat Cushion Sky grey textile 005-812229/1509000 AB560-B283-AB30 
+2023-08-11 12:38:23: 1 x Palissade Lounge Chair Low Quilted Cushion CMHR foam Sky grey textile FR 005-376193/3509000 AB562-B294-AB30  (manuel)
+2023-08-11 12:38:59: 1 x Palissade Dining Bench Seat Cushion, Sky grey textile, 005-812229/1509000, AB560-B283-AB30
+2023-08-11 12:39:02: 1 x Palissade Lounge Chair Low Quilted Cushion CMHR foam, Anthracite textile FR, 005-376193/4009000, AB562-B294-AF12 (manuel)
+2023-08-11 15:03:49: 2 x Palissade Chair & Arm Chair Seat Cushion, Anthracite textile, 005-812221/2009000, AB560-B279-AF12 (manuel)
+2024-01-09 11:50:44: 1 x Soft Quilted Cushion for Palissade-Lounge Sofa CMHR, Sky grey textile Interliner, AE014-B288-AH71, AE014-B288-AO43
+2024-01-09 12:20:29: 1 x Seat Cushion for Palissade-Dining Bench CMHR, Anthracite textile FR, AB560-B284-AF12, AB560-B284-AH72
+2024-01-09 12:22:09: 1 x Quilted Cushion for Palissade-Lounge Chair Low CMHR, Sky grey textile FR, AB562-B294-AB30, AB562-B294-AH71
+2024-01-09 13:25:51: 1 x Soft Quilted Cushion for Palissade-Lounge Chair Low CMHR, Olive textile Interliner, AE014-B294-AH70, AE014-B294-AO42 (manuel)

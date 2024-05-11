@@ -196,8 +196,9 @@ def print_manual() -> None:
     old_number = cushions_drop_down_list.get().split(" ")[0]
     barcode = cushions.get_ean_13(cushions.get_index_by_old_number(old_number))
 
-    if not manual_number_entry_box.get().isnumeric() or int(manual_number_entry_box.get()) < 1 or int(
-            manual_number_entry_box.get()) > 105:
+    if (not manual_number_entry_box.get().isnumeric()
+            or int(manual_number_entry_box.get()) < 1
+            or int(manual_number_entry_box.get()) > 105):
         messagebox.showerror(title="Fejl", message="Ugyldigt antal.\nSkal være mellem 1-105.")
         manual_number_entry_box.delete(0, END)
         return

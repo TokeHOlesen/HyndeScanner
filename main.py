@@ -81,6 +81,18 @@ class DataLoader:
             show_warning("Fejl", "Kan ikke finde BarTender filen.")
             raise SystemExit
 
+        # Builds a list of text entries for the Combobox in the Manual tab.
+        self.manual_combobox_entry_list = []
+        for cushion in self.cushions:
+            combobox_entry = f"{cushion.old_number} - {cushion.item_name} - {cushion.color}"
+            combobox_entry = combobox_entry.replace(" FR", "")
+            combobox_entry = combobox_entry.replace("Palissade ", "")
+            combobox_entry = combobox_entry.replace(" textile", "")
+            combobox_entry = combobox_entry.replace(" foam", "")
+            combobox_entry = combobox_entry.replace(" for Palissade", "")
+            combobox_entry = combobox_entry.replace(" Interliner", "")
+            self.manual_combobox_entry_list.append(combobox_entry)
+
     def item_exists(self, barcode: str) -> bool:
         """Returns True if the barcode exists and is correct."""
         for item in self.cushions:
@@ -129,7 +141,9 @@ class Sizes:
         self.scan_entry_box = (360, 64)
         self.number_entry_box = (80, 32)
         self.print_button = (140, 48)
+        self.clear_button = (48, 24)
         self.data_box_column = 330
+        self.search_box_width = 300
         self.combobox_width = 540
         self.combobox_height = 36
 
@@ -216,6 +230,26 @@ class NumberInputEntryBox(QWidget):
     @property
     def value(self) -> int:
         return int(self.entry_box.text())
+
+
+class SearchEntryBox(QWidget):
+    def __init__(self, fonts: Fonts, sizes: Sizes):
+        super().__init__()
+        layout = QHBoxLayout(self)
+        label = QLabel("Søg:")
+        label.setFont(fonts.combobox)
+        self.search_box = QLineEdit()
+        self.search_box.setFixedWidth(sizes.search_box_width)
+        clear_button = Button("Ryd", fonts, sizes)
+        clear_button.setFont(fonts.combobox)
+        clear_button.setFixedSize(*sizes.clear_button)
+        clear_button.clicked.connect(self.clear_entry_box)
+        layout.addWidget(label)
+        layout.addWidget(self.search_box)
+        layout.addWidget(clear_button)
+
+    def clear_entry_box(self):
+        self.search_box.clear()
 
 
 class DataLabel(QLabel):
@@ -317,38 +351,58 @@ class ManualTab(QWidget):
     """An interface for manually choosing the type and number of labels to be printed."""
     def __init__(self, fonts: Fonts, sizes: Sizes, items: DataLoader):
         super().__init__()
+        self.items = items
         layout = QVBoxLayout(self)
         # "Choose type" label
         choose_type_label = QLabel("Vælg type:")
         choose_type_label.setFont(fonts.prompt)
+        # Text search box
+        self.search_entry_box = SearchEntryBox(fonts, sizes)
+        self.search_entry_box.search_box.textChanged.connect(self.update_combobox)
         # item selection combo box
         self.combobox = QComboBox()
         self.combobox.setMinimumWidth(sizes.combobox_width)
         self.combobox.setMinimumHeight(sizes.combobox_height)
         self.combobox.setFont(fonts.combobox)
         # Print button
-        print_manual_button = Button("Print", fonts, sizes)
+        self.print_manual_button = Button("Print", fonts, sizes)
         # "Input amount" entry box
-        self.input_number_manual_widget = NumberInputEntryBox(fonts, sizes, print_manual_button)
+        self.input_number_manual_widget = NumberInputEntryBox(fonts, sizes, self.print_manual_button)
         # Adds the widgets to the layout
         layout.addWidget(choose_type_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.search_entry_box, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.combobox, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.input_number_manual_widget, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(print_manual_button, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.print_manual_button, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addStretch(1)
         layout.setSpacing(20)
-        self.populate_combobox(items)
+        self.reset_combobox()
 
-    def populate_combobox(self, items):
-        for cushion in items.cushions:
-            combobox_entry = f"{cushion.old_number} - {cushion.item_name} - {cushion.color}"
-            combobox_entry = combobox_entry.replace(" FR", "")
-            combobox_entry = combobox_entry.replace("Palissade ", "")
-            combobox_entry = combobox_entry.replace(" textile", "")
-            combobox_entry = combobox_entry.replace(" foam", "")
-            combobox_entry = combobox_entry.replace(" for Palissade", "")
-            combobox_entry = combobox_entry.replace(" Interliner", "")
-            self.combobox.addItem(combobox_entry)
+    def reset_combobox(self):
+        """Resets the combobox to its default state, with all item types present."""
+        self.combobox.clear()
+        for entry in self.items.manual_combobox_entry_list:
+            self.combobox.addItem(entry)
+
+    def update_combobox(self):
+        """Removes items from the Combobox if they don't contain all the words entered into the search field."""
+        self.reset_combobox()
+        search_words = self.search_entry_box.search_box.text().split(" ")
+        # Iterates backwards to avoid index shifting.
+        for i in range(self.combobox.count(), -1, -1):
+            for word in search_words:
+                if word.lower() not in self.combobox.itemText(i).lower():
+                    self.combobox.removeItem(i)
+
+    def get_selected_item_barcode(self):
+        """Returns the barcode number of the currently selected item in the combobox."""
+        old_number = self.combobox.currentText().split(" ")[0]
+        for item in self.items.cushions:
+            if item.old_number == old_number:
+                return item.ean_13
+        else:
+            show_warning("Fejl", "Den valgte vare findes ikke.")
+            raise SystemExit
 
 
 if __name__ == "__main__":

@@ -1,382 +1,355 @@
 import os
-import tkinter
-from tkinter import *
-from tkinter import ttk
-from tkinter import messagebox
-from tkinter.messagebox import askyesno
+import sys
+import styles
 from datetime import datetime
+from PyQt6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QHBoxLayout,
+    QGridLayout,
+    QTabWidget,
+    QLineEdit,
+    QComboBox,
+    QMessageBox,
+    QSpinBox,
+    QSpacerItem,
+    QSizePolicy
+)
+from PyQt6.QtCore import Qt, QSize, pyqtSignal
+from PyQt6.QtGui import QIcon, QGuiApplication, QFont, QKeyEvent
+
+
+def main():
+    app = QApplication(sys.argv)
+    app.setStyleSheet(styles.style_sheet)
+    item_data = DataLoader("Data/Hay - Hynder.txt", "Data/Rettelser.txt")
+    fonts = Fonts()
+    sizes = Sizes()
+    main_window = MainWindow(fonts, sizes, item_data)
+    main_window.scanner_tab.scan_entry_box.setFocus()
+    main_window.show()
+    app.exec()
+
+
+def show_warning(title: str, message: str):
+    message_box = QMessageBox()
+    message_box.setWindowTitle(title)
+    message_box.setText(message)
+    message_box.setIcon(QMessageBox.Icon.Warning)
+    ok_button = message_box.addButton(QMessageBox.StandardButton.Ok)
+    ok_button.setFixedSize(QSize(80, 20))
+    message_box.exec()
 
 
 class Cushion:
-    """
-    Takes a BarTender csv file and a similarly formatted corrections file as input and builds a list of known items
-    and their attributes. These attributes can then be retrieved by calling the associated method and the item's index
-    in the list. The index can be obtained by calling .get_index(barcode).
-    """
+    def __init__(self, csv_line: str):
+        csv_data = csv_line.split(";")
+        self.old_number = csv_data[0]
+        self.item_name = csv_data[1]
+        self.color = csv_data[2]
+        self.ean_13 = csv_data[3]
+        self.new_number = csv_data[4]
+
+
+class DataLoader:
     def __init__(self, bartender_file_path: str, corrections_file_path: str):
-        bartender_entries = []
+        self.cushions = []
+        self.corrections = {}
+        # Reads the corrections file and saves the wrong and correct barcodes as a key - value pair in self.corrections
         try:
-            with open(bartender_file_path) as bartender_file:
-                for line in bartender_file:
-                    bartender_entries.append(line)
-            bartender_entries.pop(0)
-        except FileNotFoundError:
-            messagebox.showerror("Fejl", "Kan ikke finde BarTender filen.")
-            raise SystemExit
-        # Loads the data from the BarTender CSV file.
-        self.old_number: list[str] = []
-        self.item_name: list[str] = []
-        self.color: list[str] = []
-        self.ean_13: list[str] = []
-        self.new_number: list[str] = []
-        for entry in bartender_entries:
-            split_entry = entry.split(";")
-            self.old_number.append(split_entry[0][4:])  # Trims the "005-" from the beginning of the number
-            self.item_name.append(split_entry[1])
-            self.color.append(split_entry[2])
-            self.ean_13.append(split_entry[3])
-            self.new_number.append(split_entry[4][:-1])  # Trims the "\n" from the end of the line
-
-        # Loads the correction data from Rettelser.txt
-        correction_entries = []
-        try:
-            with open(corrections_file_path) as corrections_file:
+            with open(corrections_file_path, "r") as corrections_file:
+                next(corrections_file)
                 for line in corrections_file:
-                    correction_entries.append(line)
-            correction_entries.pop(0)
+                    line = line.strip().split(";")
+                    wrong_barcode = line[0]
+                    correct_barcode = line[1]
+                    self.corrections[wrong_barcode] = correct_barcode
         except FileNotFoundError:
-            messagebox.showerror("Fejl", "Kan ikke finde filen \"Rettelser.txt\".")
+            show_warning("Fejl", "Filen \"Rettelser.txt\" findes ikke.")
             raise SystemExit
-        self.wrong_barcodes: list[str] = []
-        self.corrected_barcodes: list[str] = []
-        self.ask_for_color: list[bool] = []
-        self.alt_color: list[str] = []
-        for entry in correction_entries:
-            split_entry = entry.split(";")
-            self.wrong_barcodes.append(split_entry[0])
-            self.corrected_barcodes.append(split_entry[1])
-            self.ask_for_color.append((bool(int(split_entry[2]))))
-            self.alt_color.append(split_entry[3][:-1])  # Trims the "\n" from the end of the line
-        
-        self.barcode_has_been_entered = False
-        self.correct_barcode = ""
+        # Reads the BarTender file and constructs a Cushion object from each line; appends them to self.cushions
+        try:
+            with open(bartender_file_path, "r") as bartender_file:
+                next(bartender_file)
+                for line in bartender_file:
+                    self.cushions.append(Cushion(line.strip()))
+        except FileNotFoundError:
+            show_warning("Fejl", "Kan ikke finde BarTender filen.")
+            raise SystemExit
 
-    def get_index_by_barcode(self, barcode: str) -> int:
-        """
-        Returns the index of the barcode in question in self.ean_13.
-        This index corresponds to indices in all other item property lists
-        """
-        for index, checked_barcode in enumerate(self.ean_13):
-            if checked_barcode == barcode:
-                return index
+    def item_exists(self, barcode: str) -> bool:
+        """Returns True if the barcode exists and is correct."""
+        for item in self.cushions:
+            if item.ean_13 == barcode:
+                return True
+        return False
 
-    def get_index_by_old_number(self, old_number: str) -> int:
-        """
-        Returns the index of the barcode in question in self.old_number.
-        This index corresponds to indices in all other item property lists
-        """
-        for index, number in enumerate(self.old_number):
-            if number == old_number:
-                return index
+    def get_item_by_barcode(self, barcode: str) -> Cushion:
+        """Returns the Cushion class object with the .ean_13 property equal to barcode."""
+        for item in self.cushions:
+            if item.ean_13 == barcode:
+                return item
 
-    def get_old_number(self, index: int) -> str:
-        return self.old_number[index]
-
-    def get_item_name(self, index: int) -> str:
-        return self.item_name[index]
-
-    def get_color(self, index: int) -> str:
-        return self.color[index]
-
-    def get_ean_13(self, index: int) -> str:
-        return self.ean_13[index]
-
-    def get_new_number(self, index: int) -> str:
-        return self.new_number[index]
-
-    def get_number_of_entries(self) -> int:
-        return len(self.item_name)
-
-    def barcode_is_valid(self, barcode: str) -> bool:
-        """Returns True if the barcode is listed in the BarTender database file."""
-        if barcode in self.ean_13:
+    def incorrect_barcode_exists(self, barcode: str) -> bool:
+        """Returns true if the barcode exists and is known to be incorrect."""
+        if barcode in self.corrections:
             return True
         return False
 
-    def barcode_needs_correcting(self, barcode: str) -> bool:
-        """Returns True if the barcode is known to potentially be incorrect."""
-        if barcode in self.wrong_barcodes:
-            return True
-        return False
-
-    def corrected_barcode(self, barcode: str) -> str:
-        """
-        Takes a potentially incorrect barcode as input and returns the correct one.
-        In case of doubt (a correct barcode on a potentially incorrect item) asks the user to confirm the color.
-        """
-        for i, wrong_barcode in enumerate(self.wrong_barcodes):
-            if wrong_barcode == barcode:
-                if self.ask_for_color[i]:
-                    use_alternative_color = askyesno("Vælg farve", f"Er varens farve {self.alt_color[i]}?")
-                    if use_alternative_color:
-                        return self.corrected_barcodes[i]
-                    else:
-                        return self.wrong_barcodes[i]
-                return self.corrected_barcodes[i]
-    
-    def set_barcode_to_use(self, barcode: str) -> None:
-        self.correct_barcode = barcode
-
-    def get_barcode_to_use(self) -> str:
-        return self.correct_barcode
+    def get_corrected_barcode(self, barcode: str) -> str:
+        """Returns the correct version of an incorrect barcode."""
+        return self.corrections[barcode]
 
 
-def enter_barcode(barcode: str):
-    """Reads the entered barcode, checks if it's correct, corrects it if it's not, and displays the item data."""
-    uncorrected_barcode = ""
-    if cushions.barcode_needs_correcting(barcode):
-        uncorrected_barcode = barcode
-        cushions.set_barcode_to_use(cushions.corrected_barcode(barcode))
-    else:
-        cushions.set_barcode_to_use(barcode)
-    if cushions.barcode_is_valid(cushions.get_barcode_to_use()):
-        index = cushions.get_index_by_barcode(cushions.get_barcode_to_use())
-        item_name_label_text.config(text=cushions.get_item_name(index))
-        color_label_text.config(text=cushions.get_color(index))
-        old_number_label_text.config(text=cushions.get_old_number(index))
-        new_number_label_text.config(text=cushions.get_new_number(index))
-        if uncorrected_barcode == "" or uncorrected_barcode == cushions.get_ean_13(index):
-            ean13_label_text.config(text=cushions.get_ean_13(index))
+class Fonts:
+    """A container for QFont objects used within the project."""
+    def __init__(self):
+        self.prompt = QFont()
+        self.ean13 = QFont()
+        self.amount = QFont()
+        self.button = QFont()
+        self.item_data = QFont()
+        self.combobox = QFont()
+        self.prompt.setPointSize(24)
+        self.ean13.setPointSize(36)
+        self.amount.setPointSize(16)
+        self.button.setPointSize(18)
+        self.item_data.setPointSize(11)
+        self.combobox.setPointSize(10)
+
+
+class Sizes:
+    """A container for size constants for widgets used within the project."""
+    def __init__(self):
+        self.main_window = (580, 430)
+        self.scan_entry_box = (360, 64)
+        self.number_entry_box = (80, 32)
+        self.print_button = (140, 48)
+        self.data_box_column = 330
+        self.combobox_width = 540
+        self.combobox_height = 36
+
+
+class MainWindow(QMainWindow):
+    """Main window, with a tabbed interface."""
+    def __init__(self, fonts: Fonts, sizes: Sizes, item_data: DataLoader):
+        super().__init__()
+        # Sets window properties
+        self.setWindowTitle("Hyndescanner")
+        self.setWindowIcon(QIcon(".\\Data\\barcode-scan.ico"))
+        self.setFixedSize(*sizes.main_window)
+        # Moves the window to the center of the screen
+        screen = QGuiApplication.primaryScreen().geometry()
+        center_pos_x = (screen.width() - self.width()) // 2
+        center_pos_y = (screen.height() - self.height()) // 2
+        self.move(center_pos_x, center_pos_y)
+        # Instantiates the main widgets
+        self.scanner_tab = ScannerTab(fonts, sizes, item_data)
+        self.manuel_tab = ManualTab(fonts, sizes, item_data)
+        # Instantiates the tabs
+        tab_widget = QTabWidget()
+        tab_widget.setTabPosition(QTabWidget.TabPosition.North)
+        tab_widget.setMovable(False)
+        tab_widget.addTab(self.scanner_tab, "Scanner")
+        tab_widget.addTab(self.manuel_tab, "Manuel")
+        # Sets the central widget
+        self.setCentralWidget(tab_widget)
+
+
+class Button(QPushButton):
+    """A subclass of QPushButton, adding a returnPressed signal and setting the button's properties."""
+    returnPressed = pyqtSignal()
+
+    def __init__(self, text: str, fonts: Fonts, sizes: Sizes):
+        super().__init__()
+        self.setText(text)
+        self.setFixedSize(*sizes.print_button)
+        self.setFont(fonts.button)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            self.returnPressed.emit()
         else:
-            ean13_label_text.config(text=f"{uncorrected_barcode} rettes til {cushions.get_ean_13(index)}")
-        number_entry_box.focus_set()
-        cushions.barcode_has_been_entered = True
-    else:
-        if scan_entry_box.get() == "":
-            messagebox.showerror(title="Fejl", message="Du mangler at scanne en vare.")
+            super().keyPressEvent(event)
+
+
+class SpinBox(QSpinBox):
+    """A subclass of QSpinBox, adding a returnPressed signal and setting the widget's properties."""
+    returnPressed = pyqtSignal()
+
+    def __init__(self, fonts: Fonts, sizes: Sizes):
+        super().__init__()
+        self.setMinimum(1)
+        self.setMaximum(101)
+        self.setValue(1)
+        self.setFont(fonts.amount)
+        self.setFixedSize(*sizes.number_entry_box)
+
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            self.returnPressed.emit()
         else:
-            messagebox.showerror(title="Fejl", message="Ugyldig stregkode.")
-            scan_entry_box.delete(0, "end")
-        scan_entry_box.focus_set()
+            super().keyPressEvent(event)
 
 
-# If the barcode is valid sends a specified number of print jobs to the default printer, writes job details to the log
-# file and resets the window
-def print_barcode() -> None:
-    if not cushions.barcode_has_been_entered:
-        enter_barcode(scan_entry_box.get())
-    if not number_entry_box.get().isnumeric() or int(number_entry_box.get()) < 1 or int(number_entry_box.get()) > 105:
-        messagebox.showerror(title="Fejl", message="Ugyldigt antal.\nSkal være mellem 1-105.")
-        number_entry_box.delete(0, END)
-        if not scan_entry_box.get() == "":
-            number_entry_box.focus_set()
-        return
+class NumberInputEntryBox(QWidget):
+    """A container for a label and a QLineEdit widget, next to each other. Used for manual data entry."""
+    def __init__(self, fonts: Fonts, sizes: Sizes, button: Button):
+        super().__init__()
+        self.target_button = button
+        layout = QHBoxLayout(self)
+        label = QLabel("Ønsket antal: ")
+        label.setFont(fonts.amount)
+        self.entry_box = SpinBox(fonts, sizes)
+        self.entry_box.returnPressed.connect(self.move_focus_to_button)
+        layout.addWidget(label)
+        layout.addWidget(self.entry_box)
 
-    if cushions.barcode_is_valid(cushions.get_barcode_to_use()):
-        try:
-            for i in range(int(number_entry_box.get())):
-                os.startfile(f".\\Data\\PDF\\{cushions.get_barcode_to_use()}.pdf", "print")
-            write_to_log_file(cushions.get_barcode_to_use())
-            scan_entry_box.delete(0, "end")
-            number_entry_box.delete(0, "end")
-            scan_entry_box.focus_set()
-            item_name_label_text.config(text="")
-            color_label_text.config(text="")
-            old_number_label_text.config(text="")
-            new_number_label_text.config(text="")
-            ean13_label_text.config(text="")
-            cushions.barcode_has_been_entered = False
-            cushions.set_barcode_to_use("")
-        except FileNotFoundError:
-            messagebox.showerror("Fejl", "PDF filen mangler.")
+    def move_focus_to_button(self):
+        self.target_button.setFocus()
+
+    @property
+    def value(self) -> int:
+        return int(self.entry_box.text())
 
 
-# Prints the item chosen from the dropdown menu in manual mode
-def print_manual() -> None:
-    old_number = cushions_drop_down_list.get().split(" ")[0]
-    barcode = cushions.get_ean_13(cushions.get_index_by_old_number(old_number))
-
-    if (not manual_number_entry_box.get().isnumeric()
-            or int(manual_number_entry_box.get()) < 1
-            or int(manual_number_entry_box.get()) > 105):
-        messagebox.showerror(title="Fejl", message="Ugyldigt antal.\nSkal være mellem 1-105.")
-        manual_number_entry_box.delete(0, END)
-        return
-    else:
-        try:
-            for i in range(int(manual_number_entry_box.get())):
-                os.startfile(f".\\Data\\PDF\\{barcode}.pdf", "print")
-            write_to_log_file(barcode)
-            manual_number_entry_box.delete(0, "end")
-        except FileNotFoundError:
-            messagebox.showerror("Fejl", "PDF filen mangler.")
+class DataLabel(QLabel):
+    def __init__(self, fonts: Fonts, text=""):
+        super().__init__(text)
+        self.setFont(fonts.item_data)
 
 
-# Enters current job details into the log file
-def write_to_log_file(barcode: str) -> None:
-    current_tab = tab_control.tab(tab_control.select(), "text")
-    time_and_date = str(datetime.now())[:-7]
-    log_file_line = ""
+class ItemDataDisplayBox(QWidget):
+    """Displays the item's data, within a grid layout."""
+    def __init__(self, fonts: Fonts, sizes: Sizes):
+        super().__init__()
+        layout = QGridLayout(self)
+        layout.setColumnMinimumWidth(1, sizes.data_box_column)
+        item_name_label = DataLabel(fonts, "Varenavn:")
+        self.item_name_data = DataLabel(fonts)
+        color_label = DataLabel(fonts, "Farve:")
+        self.color_data = DataLabel(fonts)
+        old_number_label = DataLabel(fonts, "Gammelt nummer:")
+        self.old_number_data = DataLabel(fonts)
+        new_number_label = DataLabel(fonts, "Nyt nummer:")
+        self.new_number_data = DataLabel(fonts)
+        ean13_label = DataLabel(fonts, "Stregkode:")
+        self.ean13_data = DataLabel(fonts)
+        layout.addWidget(item_name_label, 0, 0)
+        layout.addWidget(self.item_name_data, 0, 1)
+        layout.addWidget(color_label, 1, 0)
+        layout.addWidget(self.color_data, 1, 1)
+        layout.addWidget(old_number_label, 2, 0)
+        layout.addWidget(self.old_number_data, 2, 1)
+        layout.addWidget(new_number_label, 3, 0)
+        layout.addWidget(self.new_number_data, 3, 1)
+        layout.addWidget(ean13_label, 4, 0)
+        layout.addWidget(self.ean13_data, 4, 1)
+        layout.addItem(QSpacerItem(70, 10, QSizePolicy.Policy.Maximum), 0, 2)
 
-    log_file_line += cushions.get_item_name(cushions.get_index_by_barcode(barcode)) + ", "
-    log_file_line += cushions.get_color(cushions.get_index_by_barcode(barcode)) + ", "
-    log_file_line += cushions.get_old_number(cushions.get_index_by_barcode(barcode)) + ", "
-    log_file_line += cushions.get_new_number(cushions.get_index_by_barcode(barcode))
-
-    if current_tab == "Scanner":
-        log_file_line = f"{time_and_date}: {number_entry_box.get()} x " + log_file_line
-        log_file_line += "\n"
-    elif current_tab == "Manuel":
-        log_file_line = f"{time_and_date}: {manual_number_entry_box.get()} x " + log_file_line
-        log_file_line += " (manuel)\n"
-
-    try:
-        log_file = open(".\\Data\\log.txt", "a+")
-        log_file.write(log_file_line)
-        log_file.close()
-    except OSError:
-        pass
+    def load_data(self, item_data: Cushion, scanned_barcode: str):
+        """Loads a Cushion object and the scanned barcode and displays their data."""
+        self.item_name_data.setText(item_data.item_name)
+        self.color_data.setText(item_data.color)
+        self.old_number_data.setText(item_data.old_number)
+        self.new_number_data.setText(item_data.new_number)
+        # If the scanned barcode and the item barcode don't match, shows a message that the barcode has been corrected.
+        if scanned_barcode == item_data.ean_13:
+            self.ean13_data.setText(item_data.ean_13)
+        else:
+            self.ean13_data.setText(f"{scanned_barcode} rettes til {item_data.ean_13}")
 
 
-# Runs when changing tabs - if the currect tab is Scanner, sets focus to scan_entry_box
-def tab_changed(event: tkinter.Event) -> None:
-    tab = event.widget.tab('current')['text']
-    if tab == "Scanner":
-        scan_entry_box.focus_set()
+class ScannerTab(QWidget):
+    """An interface for entering a barcode and choosing the number of labels to be printed."""
+    def __init__(self, fonts: Fonts, sizes: Sizes, item_data: DataLoader):
+        super().__init__()
+        layout = QVBoxLayout(self)
+        # "Scan an item" label
+        scan_prompt_label = QLabel("Scan en stregkode:")
+        scan_prompt_label.setFont(fonts.prompt)
+        # Scan entry box
+        self.scan_entry_box = QLineEdit()
+        self.scan_entry_box.setFixedSize(*sizes.scan_entry_box)
+        self.scan_entry_box.setFont(fonts.ean13)
+        self.scan_entry_box.returnPressed.connect(self.validate_and_set_barcode)
+        # Print button
+        self.print_button = Button("Print", fonts, sizes)
+        # "Input amount" entry box
+        self.number_input_entry_box = NumberInputEntryBox(fonts, sizes, self.print_button)
+        # Item data display box
+        self.item_data_display_box = ItemDataDisplayBox(fonts, sizes)
+        # Adds the widgets to the layout
+        layout.addWidget(scan_prompt_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.scan_entry_box, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.number_input_entry_box, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.print_button, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.item_data_display_box)
+        # Item data
+        self.item_data = item_data
+        self.scanned_item = None
+
+    def validate_and_set_barcode(self):
+        entered_barcode = self.scan_entry_box.text()
+        if entered_barcode.isnumeric() and len(entered_barcode) == 13:
+            if self.item_data.item_exists(entered_barcode):
+                self.scanned_item = self.item_data.get_item_by_barcode(entered_barcode)
+            elif self.item_data.incorrect_barcode_exists(entered_barcode):
+                corrected_barcode = self.item_data.get_corrected_barcode(entered_barcode)
+                self.scanned_item = self.item_data.get_item_by_barcode(corrected_barcode)
+            else:
+                show_warning("Ukendt stregkode", "Stregkoden er ukendt.")
+                return
+        else:
+            show_warning("Ugyldig stregkode", "Stregkoden er ikke gyldig.")
+            return
+        self.item_data_display_box.load_data(self.scanned_item, entered_barcode)
+        self.number_input_entry_box.entry_box.setFocus()
+        self.number_input_entry_box.entry_box.selectAll()
 
 
-# Builds a Cushion object containing data on all known items as well as all known problems
-cushions = Cushion(".\\Data\\Hay - Hynder.txt", ".\\Data\\Rettelser.txt")
+class ManualTab(QWidget):
+    """An interface for manually choosing the type and number of labels to be printed."""
+    def __init__(self, fonts: Fonts, sizes: Sizes, items: DataLoader):
+        super().__init__()
+        layout = QVBoxLayout(self)
+        # "Choose type" label
+        choose_type_label = QLabel("Vælg type:")
+        choose_type_label.setFont(fonts.prompt)
+        # item selection combo box
+        self.combobox = QComboBox()
+        self.combobox.setMinimumWidth(sizes.combobox_width)
+        self.combobox.setMinimumHeight(sizes.combobox_height)
+        self.combobox.setFont(fonts.combobox)
+        # Print button
+        print_manual_button = Button("Print", fonts, sizes)
+        # "Input amount" entry box
+        self.input_number_manual_widget = NumberInputEntryBox(fonts, sizes, print_manual_button)
+        # Adds the widgets to the layout
+        layout.addWidget(choose_type_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.combobox, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.input_number_manual_widget, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(print_manual_button, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addStretch(1)
+        layout.setSpacing(20)
+        self.populate_combobox(items)
 
-# Builds a list of strings to be shown in the dropdown Combobox in the "Manuel" tab
-# Trims unnecessary data to make the line fit into the window
-cushions_drop_down_entries = []
+    def populate_combobox(self, items):
+        for cushion in items.cushions:
+            combobox_entry = f"{cushion.old_number} - {cushion.item_name} - {cushion.color}"
+            combobox_entry = combobox_entry.replace(" FR", "")
+            combobox_entry = combobox_entry.replace("Palissade ", "")
+            combobox_entry = combobox_entry.replace(" textile", "")
+            combobox_entry = combobox_entry.replace(" foam", "")
+            combobox_entry = combobox_entry.replace(" for Palissade", "")
+            combobox_entry = combobox_entry.replace(" Interliner", "")
+            self.combobox.addItem(combobox_entry)
 
-for cushion in range(cushions.get_number_of_entries()):
-    cushion_entry = ""
-    cushion_entry += cushions.get_old_number(cushion) + " - "
-    cushion_entry += cushions.get_item_name(cushion) + " - "
-    cushion_entry += cushions.get_color(cushion)
 
-    cushion_entry = cushion_entry.replace(" FR", "")
-    cushion_entry = cushion_entry.replace("Palissade ", "")
-    cushion_entry = cushion_entry.replace(" textile", "")
-    cushion_entry = cushion_entry.replace(" foam", "")
-    cushion_entry = cushion_entry.replace(" for Palissade", "")
-    cushion_entry = cushion_entry.replace(" Interliner", "")
-
-    cushions_drop_down_entries.append(cushion_entry)
-
-# GUI
-
-# Window properties
-window = Tk()
-window.resizable(False, False)
-window.geometry(f"488x402+{window.winfo_screenwidth() // 2 - 250}+{window.winfo_screenheight() // 4}")
-window.title("Hyndescanner")
-window.iconbitmap(".\\Data\\barcode-scan.ico")
-
-# Declaration of GUI elements
-
-# Tab setup
-tab_control = ttk.Notebook(window)
-scanner_tab = ttk.Frame(tab_control)
-manual_tab = ttk.Frame(tab_control)
-
-tab_control.add(scanner_tab, text="Scanner")
-tab_control.add(manual_tab, text="Manuel")
-
-tab_control.bind("<<NotebookTabChanged>>", tab_changed)
-
-# "Scanner" Tab
-
-# Main elements
-scan_prompt_label = Label(scanner_tab, text="Scan en vare:", font=("Segoe UI", "24"))
-
-scan_entry_box = Entry(scanner_tab, width=14, font=("Segoe UI", "32"))
-scan_entry_box.bind("<Return>", lambda event: enter_barcode(scan_entry_box.get()))
-scan_entry_box.focus_set()
-
-number_frame = Frame(scanner_tab)
-
-input_number_label = Label(number_frame, text="Ønsket antal: ", font=("Segoe UI", "16"))
-input_number_label.grid(row=0, column=0)
-
-number_entry_box = Entry(number_frame, width=4, font=("Segoe UI", "16"))
-number_entry_box.bind("<Return>", lambda event: print_barcode())
-number_entry_box.grid(row=0, column=1)
-
-print_button = Button(scanner_tab, text="Print", command=print_barcode, width=12, font=("Segoe UI", "16"))
-
-# Item data display
-item_name_label_frame = Frame(scanner_tab)
-item_name_label = Label(item_name_label_frame, text="Varenavn:", anchor="w", width=16)
-item_name_label_text = Label(item_name_label_frame, anchor="w", width=48)
-item_name_label.grid(row=0, column=0)
-item_name_label_text.grid(row=0, column=1)
-
-color_label_frame = Frame(scanner_tab)
-color_label = Label(color_label_frame, text="Farve:", anchor="w", width=16)
-color_label_text = Label(color_label_frame, anchor="w", width=48)
-color_label.grid(row=0, column=0)
-color_label_text.grid(row=0, column=1)
-
-old_number_label_frame = Frame(scanner_tab)
-old_number_label = Label(old_number_label_frame, text="Gammelt nummer:", anchor="w", width=16)
-old_number_label_text = Label(old_number_label_frame, anchor="w", width=48)
-old_number_label.grid(row=0, column=0)
-old_number_label_text.grid(row=0, column=1)
-
-new_number_label_frame = Frame(scanner_tab)
-new_number_label = Label(new_number_label_frame, text="Nyt nummer:", anchor="w", width=16)
-new_number_label_text = Label(new_number_label_frame, anchor="w", width=48)
-new_number_label.grid(row=0, column=0)
-new_number_label_text.grid(row=0, column=1)
-
-ean13_label_frame = Frame(scanner_tab)
-ean13_label = Label(ean13_label_frame, text="Stregkode:", anchor="w", width=16)
-ean13_label_text = Label(ean13_label_frame, anchor="w", width=48)
-ean13_label.grid(row=0, column=0)
-ean13_label_text.grid(row=0, column=1)
-
-# "Manuel" Tab
-
-# Main elements
-
-choose_cushion_label = Label(manual_tab, text="Vælg type:", font=("Segoe UI", "24"))
-
-cushions_drop_down_list = ttk.Combobox(manual_tab, values=cushions_drop_down_entries)
-cushions_drop_down_list.set(cushions_drop_down_entries[0])
-cushions_drop_down_list["state"] = "readonly"
-
-manual_number_frame = Frame(manual_tab)
-
-manual_input_number_label = Label(manual_number_frame, text="Ønsket antal: ", font=("Segoe UI", "16"))
-manual_input_number_label.grid(row=0, column=0)
-
-manual_number_entry_box = Entry(manual_number_frame, width=4, font=("Segoe UI", "16"))
-manual_number_entry_box.bind("<Return>", lambda event: print_manual())
-manual_number_entry_box.grid(row=0, column=1)
-
-manual_print_button = Button(manual_tab, text="Print", command=print_manual, width=12, font=("Segoe UI", "16"))
-
-# Placement of GUI elements
-tab_control.pack(pady=4)
-
-scan_prompt_label.pack()
-scan_entry_box.pack(pady=10)
-number_frame.pack()
-print_button.pack(pady=16)
-
-item_name_label_frame.pack()
-color_label_frame.pack()
-old_number_label_frame.pack()
-new_number_label_frame.pack()
-ean13_label_frame.pack()
-
-choose_cushion_label.pack(pady=12)
-cushions_drop_down_list.pack(fill=X, padx=4, pady=10)
-manual_number_frame.pack(pady=10)
-manual_print_button.pack(pady=16)
-
-window.mainloop()
+if __name__ == "__main__":
+    main()

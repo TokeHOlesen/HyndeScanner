@@ -1,4 +1,5 @@
 import os
+import pymupdf
 import sys
 import styles
 from datetime import datetime
@@ -20,7 +21,8 @@ from PyQt6.QtWidgets import (
     QSizePolicy
 )
 from PyQt6.QtCore import Qt, QSize, pyqtSignal
-from PyQt6.QtGui import QIcon, QGuiApplication, QFont, QKeyEvent
+from PyQt6.QtGui import QIcon, QGuiApplication, QFont, QKeyEvent, QPixmap, QPainter, QImage
+from PyQt6.QtPrintSupport import QPrinter, QPrintDialog
 
 
 def main():
@@ -81,17 +83,39 @@ class DataLoader:
             show_warning("Fejl", "Kan ikke finde BarTender filen.")
             raise SystemExit
 
-        # Builds a list of text entries for the Combobox in the Manual tab.
-        self.manual_combobox_entry_list = []
+        # Builds two lists of text entries for the Combobox in the Manual tab - one each for old and new numbers.
+        self.old_number_combobox_entry_list = self.build_combobox_elements("old")
+        self.new_number_combobox_entry_list = self.build_combobox_elements("new")
+
+        # Checks if there exists a .png file for every .pdf file; converts the pdf into png if not.
         for cushion in self.cushions:
-            combobox_entry = f"{cushion.old_number} - {cushion.item_name} - {cushion.color}"
+            barcode = cushion.ean_13
+            if not os.path.isfile(f"Data/PNG/{barcode}.png"):
+                self.convert_pdf_to_png(barcode)
+
+    def build_combobox_elements(self, number_type: str):
+        combobox_element_list = []
+        for cushion in self.cushions:
+            if number_type == "old":
+                combobox_entry = f"{cushion.old_number} - {cushion.item_name} - {cushion.color}"
+            else:
+                combobox_entry = f"{cushion.new_number} - {cushion.item_name} - {cushion.color}"
             combobox_entry = combobox_entry.replace(" FR", "")
             combobox_entry = combobox_entry.replace("Palissade ", "")
             combobox_entry = combobox_entry.replace(" textile", "")
             combobox_entry = combobox_entry.replace(" foam", "")
             combobox_entry = combobox_entry.replace(" for Palissade", "")
             combobox_entry = combobox_entry.replace(" Interliner", "")
-            self.manual_combobox_entry_list.append(combobox_entry)
+            combobox_element_list.append(combobox_entry)
+        return combobox_element_list
+
+    @staticmethod
+    def convert_pdf_to_png(barcode: str) -> None:
+        """Converts PDF into PNG."""
+        label_pdf = pymupdf.open(f"Data/PDF/{barcode}.pdf")
+        label = label_pdf.load_page(0)
+        label_pix = label.get_pixmap(dpi=300)
+        label_pix.save(f"Data/PNG/{barcode}.png")
 
     def item_exists(self, barcode: str) -> bool:
         """Returns True if the barcode exists and is correct."""
@@ -137,12 +161,13 @@ class Fonts:
 class Sizes:
     """A container for size constants for widgets used within the project."""
     def __init__(self):
-        self.main_window = (580, 430)
+        self.main_window = (580, 710)
         self.scan_entry_box = (360, 64)
         self.number_entry_box = (80, 32)
         self.print_button = (140, 48)
         self.clear_button = (48, 24)
         self.data_box_column = 330
+        self.label_preview = (540, 260)
         self.search_box_width = 300
         self.combobox_width = 540
         self.combobox_height = 36
@@ -240,16 +265,23 @@ class SearchEntryBox(QWidget):
         label.setFont(fonts.combobox)
         self.search_box = QLineEdit()
         self.search_box.setFixedWidth(sizes.search_box_width)
-        clear_button = Button("Ryd", fonts, sizes)
-        clear_button.setFont(fonts.combobox)
-        clear_button.setFixedSize(*sizes.clear_button)
-        clear_button.clicked.connect(self.clear_entry_box)
+        self.search_box.textChanged.connect(self.update_clear_button_state)
+        self.clear_button = Button("Ryd", fonts, sizes)
+        self.clear_button.setFont(fonts.combobox)
+        self.clear_button.setFixedSize(*sizes.clear_button)
+        self.clear_button.clicked.connect(self.clear_entry_box)
+        self.clear_button.setEnabled(False)
         layout.addWidget(label)
         layout.addWidget(self.search_box)
-        layout.addWidget(clear_button)
+        layout.addWidget(self.clear_button)
 
     def clear_entry_box(self):
+        """Clears the search box."""
         self.search_box.clear()
+
+    def update_clear_button_state(self):
+        """Sets the 'Clear' buttons active state to disabled if the search box is empty."""
+        self.clear_button.setDisabled(self.search_box.text() == "")
 
 
 class DataLabel(QLabel):
@@ -299,6 +331,21 @@ class ItemDataDisplayBox(QWidget):
             self.ean13_data.setText(f"{scanned_barcode} rettes til {item_data.ean_13}")
 
 
+class LabelPreview(QLabel):
+    def __init__(self, sizes: Sizes):
+        super().__init__()
+        self.setObjectName("label_preview")
+        self.setFixedSize(*sizes.label_preview)
+
+    def update_image_preview(self, barcode: str):
+        path_to_png = f"Data/PNG/{barcode}.png"
+        label_preview_pix = QPixmap(path_to_png).scaled(
+            self.size(),
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation)
+        self.setPixmap(label_preview_pix)
+
+
 class ScannerTab(QWidget):
     """An interface for entering a barcode and choosing the number of labels to be printed."""
     def __init__(self, fonts: Fonts, sizes: Sizes, item_data: DataLoader):
@@ -314,16 +361,21 @@ class ScannerTab(QWidget):
         self.scan_entry_box.returnPressed.connect(self.validate_and_set_barcode)
         # Print button
         self.print_button = Button("Print", fonts, sizes)
+        self.print_button.returnPressed.connect(self.print)
+        self.print_button.clicked.connect(self.print)
         # "Input amount" entry box
         self.number_input_entry_box = NumberInputEntryBox(fonts, sizes, self.print_button)
         # Item data display box
         self.item_data_display_box = ItemDataDisplayBox(fonts, sizes)
+        # Label preview box
+        self.label_preview = LabelPreview(sizes)
         # Adds the widgets to the layout
         layout.addWidget(scan_prompt_label, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.scan_entry_box, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.number_input_entry_box, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.print_button, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.item_data_display_box)
+        layout.addWidget(self.label_preview, alignment=Qt.AlignmentFlag.AlignCenter)
         # Item data
         self.item_data = item_data
         self.scanned_item = None
@@ -343,8 +395,21 @@ class ScannerTab(QWidget):
             show_warning("Ugyldig stregkode", "Stregkoden er ikke gyldig.")
             return
         self.item_data_display_box.load_data(self.scanned_item, entered_barcode)
+        self.label_preview.update_image_preview(self.scanned_item.ean_13)
         self.number_input_entry_box.entry_box.setFocus()
         self.number_input_entry_box.entry_box.selectAll()
+
+    def print(self):
+        # TODO: clean this up, add default printer
+        image_to_print = QPixmap(f"Data/PNG/{self.scanned_item.ean_13}.png")
+        printer = QPrinter()
+        print_dialog = QPrintDialog(printer, self)
+
+        if print_dialog.exec() == QPrintDialog.DialogCode.Accepted:
+            painter = QPainter(printer)
+
+            painter.drawPixmap(0, 0, image_to_print)
+            painter.end()
 
 
 class ManualTab(QWidget):
@@ -364,10 +429,13 @@ class ManualTab(QWidget):
         self.combobox.setMinimumWidth(sizes.combobox_width)
         self.combobox.setMinimumHeight(sizes.combobox_height)
         self.combobox.setFont(fonts.combobox)
+        self.combobox.currentIndexChanged.connect(self.update_preview)
         # Print button
         self.print_manual_button = Button("Print", fonts, sizes)
         # "Input amount" entry box
         self.input_number_manual_widget = NumberInputEntryBox(fonts, sizes, self.print_manual_button)
+        # Label preview box
+        self.label_preview = LabelPreview(sizes)
         # Adds the widgets to the layout
         layout.addWidget(choose_type_label, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.search_entry_box, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -375,13 +443,14 @@ class ManualTab(QWidget):
         layout.addWidget(self.input_number_manual_widget, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.print_manual_button, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addStretch(1)
+        layout.addWidget(self.label_preview, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.setSpacing(20)
         self.reset_combobox()
 
     def reset_combobox(self):
         """Resets the combobox to its default state, with all item types present."""
         self.combobox.clear()
-        for entry in self.items.manual_combobox_entry_list:
+        for entry in self.items.old_number_combobox_entry_list:
             self.combobox.addItem(entry)
 
     def update_combobox(self):
@@ -400,9 +469,10 @@ class ManualTab(QWidget):
         for item in self.items.cushions:
             if item.old_number == old_number:
                 return item.ean_13
-        else:
-            show_warning("Fejl", "Den valgte vare findes ikke.")
-            raise SystemExit
+
+    def update_preview(self):
+        barcode = self.get_selected_item_barcode()
+        self.label_preview.update_image_preview(barcode)
 
 
 if __name__ == "__main__":

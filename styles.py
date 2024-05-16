@@ -16,6 +16,9 @@ style_sheet = """
         QPushButton:focus {
             border: 2px solid #AAAAAA;
         }
+        QPushButton:disabled {
+            color: #BBBBBB;
+        }
         QSpinBox {
             border: 1px solid #AAAAAA;
             border-radius: 4px;
@@ -32,5 +35,8 @@ style_sheet = """
         }
         QScrollBar {
             border: 0px;
+        }
+        QLabel#label_preview {
+            border: 2px solid #AAAAAA;
         }
     """

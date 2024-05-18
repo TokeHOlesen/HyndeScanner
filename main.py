@@ -20,10 +20,12 @@ from PyQt6.QtWidgets import (
     QSpacerItem,
     QSizePolicy,
     QRadioButton,
-    QButtonGroup
+    QButtonGroup,
+    QDialog,
+    QDialogButtonBox
 )
 from PyQt6.QtCore import Qt, QSize, pyqtSignal
-from PyQt6.QtGui import QIcon, QGuiApplication, QFont, QKeyEvent, QPixmap, QPainter, QImage
+from PyQt6.QtGui import QIcon, QGuiApplication, QFont, QKeyEvent, QPixmap, QPainter
 from PyQt6.QtPrintSupport import QPrinter, QPrintDialog
 
 
@@ -61,20 +63,13 @@ class Cushion:
 
 class DataLoader:
     def __init__(self, bartender_file_path: str, corrections_file_path: str):
+        # A list of Cushion class objects - one for each known item.
         self.cushions = []
-        self.corrections = {}
-        # Reads the corrections file and saves the wrong and correct barcodes as a key - value pair in self.corrections
-        try:
-            with open(corrections_file_path, "r") as corrections_file:
-                next(corrections_file)
-                for line in corrections_file:
-                    line = line.strip().split(";")
-                    wrong_barcode = line[0]
-                    correct_barcode = line[1]
-                    self.corrections[wrong_barcode] = correct_barcode
-        except FileNotFoundError:
-            show_warning("Fejl", "Filen \"Rettelser.txt\" findes ikke.")
-            raise SystemExit
+        # A list of ean-13 numbers that must be directly replaced with another number, without user input.
+        self.replacements = {}
+        # A list of ean-13 numbers that are potentially incorrect and have more than one potential replacement.
+        # User input is necessary to find the correct replacement.
+        self.multiple_choice_replacements = {}
         # Reads the BarTender file and constructs a Cushion object from each line; appends them to self.cushions
         try:
             with open(bartender_file_path, "r") as bartender_file:
@@ -83,6 +78,21 @@ class DataLoader:
                     self.cushions.append(Cushion(line.strip()))
         except FileNotFoundError:
             show_warning("Fejl", "Kan ikke finde BarTender filen.")
+            raise SystemExit
+        # Reads the corrections file and saves the wrong and correct barcodes as a key - value pair in self.corrections
+        try:
+            with open(corrections_file_path, "r") as corrections_file:
+                next(corrections_file)
+                for line in corrections_file:
+                    line = line.strip().split(";")
+                    if line[0] == "erstat":
+                        wrong_barcode = line[1]
+                        correct_barcode = line[2]
+                        self.replacements[wrong_barcode] = correct_barcode
+                    elif line[0] == "flere":
+                        self.multiple_choice_replacements[line[1]] = line[1:]
+        except FileNotFoundError:
+            show_warning("Fejl", "Filen \"Rettelser.txt\" findes ikke.")
             raise SystemExit
 
         # Builds two lists of text entries for the Combobox in the Manual tab - one each for old and new numbers.
@@ -132,15 +142,24 @@ class DataLoader:
             if item.ean_13 == barcode:
                 return item
 
-    def incorrect_barcode_exists(self, barcode: str) -> bool:
+    def barcode_must_be_replaced(self, barcode: str) -> bool:
         """Returns true if the barcode exists and is known to be incorrect."""
-        if barcode in self.corrections:
+        if barcode in self.replacements:
             return True
         return False
 
-    def get_corrected_barcode(self, barcode: str) -> str:
+    def get_replacement_barcode(self, barcode: str) -> str:
         """Returns the correct version of an incorrect barcode."""
-        return self.corrections[barcode]
+        return self.replacements[barcode]
+
+    def multiple_replacements_exist(self, barcode: str) -> bool:
+        """
+        Returns true if the barcode exists, is known to potentially be incorrect and there is more than one
+        possible replacement; user input is necessary.
+        """
+        if barcode in self.multiple_choice_replacements:
+            return True
+        return False
 
 
 class Fonts:
@@ -167,6 +186,7 @@ class Sizes:
         self.scan_entry_box = (360, 64)
         self.number_entry_box = (80, 32)
         self.print_button = (140, 48)
+        self.dialog_box_ok_button = (80, 24)
         self.clear_button = (48, 24)
         self.data_box_column = 330
         self.label_preview = (540, 260)
@@ -352,12 +372,51 @@ class LabelPreview(QLabel):
         self.setPixmap(label_preview_pix)
 
 
+class MultipleBarcodeSelection(QDialog):
+    def __init__(self, barcode_list: list, items: DataLoader, sizes: Sizes):
+        super().__init__()
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowCloseButtonHint)
+        self.item_data = items
+        combobox_entries = []
+        for item_text in items.new_number_combobox_entry_list:
+            for barcode in barcode_list:
+                item = self.item_data.get_item_by_barcode(barcode)
+                if item is None:
+                    continue
+                if item.new_number in item_text:
+                    combobox_entries.append(item_text)
+        self.setWindowTitle("Vælg vare")
+        layout = QVBoxLayout(self)
+        label = QLabel("Der er flere varer, der pga. fejl er mærket med denne stregkode.\n"
+                       "Angiv venligst den scannede varetype:")
+        self.combobox = QComboBox()
+        self.combobox.addItems(combobox_entries)
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
+        button_box.button(QDialogButtonBox.StandardButton.Ok).setFixedSize(*sizes.dialog_box_ok_button)
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+        layout.addWidget(label)
+        layout.addStretch(1)
+        layout.addWidget(self.combobox)
+        layout.addWidget(button_box)
+        layout.setSpacing(16)
+        layout.setContentsMargins(20, 20, 20, 20)
+
+    def get_selected_item(self):
+        # Gets the item number from the currently selected combobox entry.
+        item_number = self.combobox.currentText().split(" ")[0]
+        # Finds and returns the Cushion class object with the .new_number property equal to item_number.
+        for item in self.item_data.cushions:
+            if item_number == item.new_number:
+                return item.ean_13
+
+
 class OldNewRadioButtons(QWidget):
     """Implements a widget holding two radio buttons to choose between old and new numbers."""
     def __init__(self):
         super().__init__()
-        self.old_radio_button = QRadioButton("Gamle numre")
-        self.new_radio_button = QRadioButton("Nye numre")
+        self.old_radio_button = QRadioButton("Gamle varenumre")
+        self.new_radio_button = QRadioButton("Nye varenumre")
         self.old_new_radio_btns = QButtonGroup()
         self.old_new_radio_btns.addButton(self.old_radio_button)
         self.old_new_radio_btns.addButton(self.new_radio_button)
@@ -398,16 +457,28 @@ class ScannerTab(QWidget):
         layout.addWidget(self.item_data_display_box)
         layout.addWidget(self.label_preview, alignment=Qt.AlignmentFlag.AlignCenter)
         # Item data
+        self.sizes = sizes
         self.item_data = item_data
         self.scanned_item = None
 
     def validate_and_set_barcode(self):
         entered_barcode = self.scan_entry_box.text()
         if entered_barcode.isnumeric() and len(entered_barcode) == 13:
-            if self.item_data.item_exists(entered_barcode):
+            if self.item_data.multiple_replacements_exist(entered_barcode):
+                item_selection_dialog = MultipleBarcodeSelection(
+                    self.item_data.multiple_choice_replacements[entered_barcode],
+                    self.item_data,
+                    self.sizes)
+                if item_selection_dialog.exec() == QDialog.DialogCode.Accepted:
+                    corrected_barcode = item_selection_dialog.get_selected_item()
+                    self.scanned_item = self.item_data.get_item_by_barcode(corrected_barcode)
+                else:
+                    show_warning("Fejl", "Der er sket en fejl. Programmet lukker nu.")
+                    raise SystemExit
+            elif self.item_data.item_exists(entered_barcode):
                 self.scanned_item = self.item_data.get_item_by_barcode(entered_barcode)
-            elif self.item_data.incorrect_barcode_exists(entered_barcode):
-                corrected_barcode = self.item_data.get_corrected_barcode(entered_barcode)
+            elif self.item_data.barcode_must_be_replaced(entered_barcode):
+                corrected_barcode = self.item_data.get_replacement_barcode(entered_barcode)
                 self.scanned_item = self.item_data.get_item_by_barcode(corrected_barcode)
             else:
                 show_warning("Ukendt stregkode", "Stregkoden er ukendt.")

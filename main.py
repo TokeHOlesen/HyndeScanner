@@ -18,7 +18,9 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QSpinBox,
     QSpacerItem,
-    QSizePolicy
+    QSizePolicy,
+    QRadioButton,
+    QButtonGroup
 )
 from PyQt6.QtCore import Qt, QSize, pyqtSignal
 from PyQt6.QtGui import QIcon, QGuiApplication, QFont, QKeyEvent, QPixmap, QPainter, QImage
@@ -332,10 +334,14 @@ class ItemDataDisplayBox(QWidget):
 
 
 class LabelPreview(QLabel):
-    def __init__(self, sizes: Sizes):
+    """Implements a widget showing a preview of the label to be printed."""
+    def __init__(self, fonts: Fonts, sizes: Sizes):
         super().__init__()
         self.setObjectName("label_preview")
         self.setFixedSize(*sizes.label_preview)
+        self.setText("Forhåndsvisning")
+        self.setFont(fonts.prompt)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     def update_image_preview(self, barcode: str):
         path_to_png = f"Data/PNG/{barcode}.png"
@@ -344,6 +350,21 @@ class LabelPreview(QLabel):
             Qt.AspectRatioMode.KeepAspectRatio,
             Qt.TransformationMode.SmoothTransformation)
         self.setPixmap(label_preview_pix)
+
+
+class OldNewRadioButtons(QWidget):
+    """Implements a widget holding two radio buttons to choose between old and new numbers."""
+    def __init__(self):
+        super().__init__()
+        self.old_radio_button = QRadioButton("Gamle numre")
+        self.new_radio_button = QRadioButton("Nye numre")
+        self.old_new_radio_btns = QButtonGroup()
+        self.old_new_radio_btns.addButton(self.old_radio_button)
+        self.old_new_radio_btns.addButton(self.new_radio_button)
+        self.old_radio_button.setChecked(True)
+        self.layout = QHBoxLayout(self)
+        self.layout.addWidget(self.old_radio_button)
+        self.layout.addWidget(self.new_radio_button)
 
 
 class ScannerTab(QWidget):
@@ -368,7 +389,7 @@ class ScannerTab(QWidget):
         # Item data display box
         self.item_data_display_box = ItemDataDisplayBox(fonts, sizes)
         # Label preview box
-        self.label_preview = LabelPreview(sizes)
+        self.label_preview = LabelPreview(fonts, sizes)
         # Adds the widgets to the layout
         layout.addWidget(scan_prompt_label, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.scan_entry_box, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -417,6 +438,7 @@ class ManualTab(QWidget):
     def __init__(self, fonts: Fonts, sizes: Sizes, items: DataLoader):
         super().__init__()
         self.items = items
+        self.selected_number_type = items.old_number_combobox_entry_list
         layout = QVBoxLayout(self)
         # "Choose type" label
         choose_type_label = QLabel("Vælg type:")
@@ -424,6 +446,9 @@ class ManualTab(QWidget):
         # Text search box
         self.search_entry_box = SearchEntryBox(fonts, sizes)
         self.search_entry_box.search_box.textChanged.connect(self.update_combobox)
+        # Old/New number selection radio buttons
+        self.old_new_radio_buttons = OldNewRadioButtons()
+        self.old_new_radio_buttons.old_new_radio_btns.buttonClicked.connect(self.change_number_type)
         # item selection combo box
         self.combobox = QComboBox()
         self.combobox.setMinimumWidth(sizes.combobox_width)
@@ -435,10 +460,11 @@ class ManualTab(QWidget):
         # "Input amount" entry box
         self.input_number_manual_widget = NumberInputEntryBox(fonts, sizes, self.print_manual_button)
         # Label preview box
-        self.label_preview = LabelPreview(sizes)
+        self.label_preview = LabelPreview(fonts, sizes)
         # Adds the widgets to the layout
         layout.addWidget(choose_type_label, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.search_entry_box, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.old_new_radio_buttons, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.combobox, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.input_number_manual_widget, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.print_manual_button, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -447,10 +473,22 @@ class ManualTab(QWidget):
         layout.setSpacing(20)
         self.reset_combobox()
 
+    def change_number_type(self):
+        """Changes the item list to use for the combobox according to which radio button is checked."""
+        current_index = self.combobox.currentIndex()
+        if self.old_new_radio_buttons.old_radio_button.isChecked():
+            self.selected_number_type = self.items.old_number_combobox_entry_list
+        elif self.old_new_radio_buttons.new_radio_button.isChecked():
+            self.selected_number_type = self.items.new_number_combobox_entry_list
+        self.reset_combobox()
+        self.update_combobox()
+        self.combobox.setCurrentIndex(current_index)
+
     def reset_combobox(self):
         """Resets the combobox to its default state, with all item types present."""
+        number_list = self.selected_number_type
         self.combobox.clear()
-        for entry in self.items.old_number_combobox_entry_list:
+        for entry in number_list:
             self.combobox.addItem(entry)
 
     def update_combobox(self):
@@ -465,9 +503,9 @@ class ManualTab(QWidget):
 
     def get_selected_item_barcode(self):
         """Returns the barcode number of the currently selected item in the combobox."""
-        old_number = self.combobox.currentText().split(" ")[0]
+        item_number = self.combobox.currentText().split(" ")[0]
         for item in self.items.cushions:
-            if item.old_number == old_number:
+            if item_number in [item.old_number, item.new_number]:
                 return item.ean_13
 
     def update_preview(self):

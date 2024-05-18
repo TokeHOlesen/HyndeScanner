@@ -38,5 +38,6 @@ style_sheet = """
         }
         QLabel#label_preview {
             border: 2px solid #AAAAAA;
+            color: #CCCCCC;
         }
     """

@@ -41,11 +41,12 @@ def main():
     app.exec()
 
 
-def show_warning(title: str, message: str):
+def show_warning(title: str, message: str) -> None:
     message_box = QMessageBox()
     message_box.setWindowTitle(title)
     message_box.setText(message)
     message_box.setIcon(QMessageBox.Icon.Warning)
+    message_box.setWindowIcon(QIcon("Data/barcode-scan.ico"))
     ok_button = message_box.addButton(QMessageBox.StandardButton.Ok)
     ok_button.setFixedSize(QSize(80, 20))
     message_box.exec()
@@ -271,7 +272,7 @@ class NumberInputEntryBox(QWidget):
         layout.addWidget(label)
         layout.addWidget(self.entry_box)
 
-    def move_focus_to_button(self):
+    def move_focus_to_button(self) -> None:
         self.target_button.setFocus()
 
     @property
@@ -297,11 +298,11 @@ class SearchEntryBox(QWidget):
         layout.addWidget(self.search_box)
         layout.addWidget(self.clear_button)
 
-    def clear_entry_box(self):
+    def clear_entry_box(self) -> None:
         """Clears the search box."""
         self.search_box.clear()
 
-    def update_clear_button_state(self):
+    def update_clear_button_state(self) -> None:
         """Sets the 'Clear' buttons active state to disabled if the search box is empty."""
         self.clear_button.setDisabled(self.search_box.text() == "")
 
@@ -340,7 +341,7 @@ class ItemDataDisplayBox(QWidget):
         layout.addWidget(self.ean13_data, 4, 1)
         layout.addItem(QSpacerItem(70, 10, QSizePolicy.Policy.Maximum), 0, 2)
 
-    def load_data(self, item_data: Cushion, scanned_barcode: str):
+    def load_data(self, item_data: Cushion, scanned_barcode: str) -> None:
         """Loads a Cushion object and the scanned barcode and displays their data."""
         self.item_name_data.setText(item_data.item_name)
         self.color_data.setText(item_data.color)
@@ -363,7 +364,7 @@ class LabelPreview(QLabel):
         self.setFont(fonts.prompt)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-    def update_image_preview(self, barcode: str):
+    def update_image_preview(self, barcode: str) -> None:
         path_to_png = f"Data/PNG/{barcode}.png"
         label_preview_pix = QPixmap(path_to_png).scaled(
             self.size(),
@@ -373,14 +374,24 @@ class LabelPreview(QLabel):
 
 
 class MultipleBarcodeSelection(QDialog):
-    def __init__(self, barcode_list: list, items: DataLoader, sizes: Sizes):
+    """
+    Spawns a dialog box asking the user to identify the scanned item.
+    This is necessary if several different item types have been labeled with the same barcode by mistake.
+    """
+    def __init__(self, barcode_list: list, items: DataLoader, sizes: Sizes) -> None:
         super().__init__()
+        self.setWindowIcon(QIcon(".\\Data\\barcode-scan.ico"))
+        # Disables the window closing "X" - the window can't be dismissed without selecting an item.
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowCloseButtonHint)
         self.item_data = items
         combobox_entries = []
+        # Identifies the items' names by the supplied barcodes, then compares those names to the ones in
+        # items.new_number_combobox_entry_list; If there's a match, adds the text to this window's combobox.
         for item_text in items.new_number_combobox_entry_list:
             for barcode in barcode_list:
                 item = self.item_data.get_item_by_barcode(barcode)
+                # Ignores unknown barcodes - this is useful if the same wrong barcode has been used for several items.
+                # An unknown barcode will not show up in the combobox.
                 if item is None:
                     continue
                 if item.new_number in item_text:
@@ -402,10 +413,11 @@ class MultipleBarcodeSelection(QDialog):
         layout.setSpacing(16)
         layout.setContentsMargins(20, 20, 20, 20)
 
-    def get_selected_item(self):
-        # Gets the item number from the currently selected combobox entry.
+    def get_selected_item_barcode(self) -> str:
+        """Returns the barcode of the selected item."""
+        # Gets the new item number from the currently selected combobox entry.
         item_number = self.combobox.currentText().split(" ")[0]
-        # Finds and returns the Cushion class object with the .new_number property equal to item_number.
+        # Returns the value of .ean_13 property of the object where the .new_number property matches the selected line.
         for item in self.item_data.cushions:
             if item_number == item.new_number:
                 return item.ean_13
@@ -461,37 +473,48 @@ class ScannerTab(QWidget):
         self.item_data = item_data
         self.scanned_item = None
 
-    def validate_and_set_barcode(self):
+    def validate_and_set_barcode(self) -> None:
+        """
+        Checks if the barcode is valid. If yes, sets self.scanned_item to the item corresponding to the scanned barcode.
+        If the scanned barcode is known to be incorrect, looks up the correct one and uses it instead.
+        For items where the same barcode has been used for several items, asks the user for clarification.
+        """
         entered_barcode = self.scan_entry_box.text()
         if entered_barcode.isnumeric() and len(entered_barcode) == 13:
+            # If the barcode is known to have been put on several different items, asks user for clarification.
             if self.item_data.multiple_replacements_exist(entered_barcode):
-                item_selection_dialog = MultipleBarcodeSelection(
-                    self.item_data.multiple_choice_replacements[entered_barcode],
-                    self.item_data,
-                    self.sizes)
-                if item_selection_dialog.exec() == QDialog.DialogCode.Accepted:
-                    corrected_barcode = item_selection_dialog.get_selected_item()
-                    self.scanned_item = self.item_data.get_item_by_barcode(corrected_barcode)
-                else:
-                    show_warning("Fejl", "Der er sket en fejl. Programmet lukker nu.")
-                    raise SystemExit
+                self.scanned_item = self.get_item_info_from_user(entered_barcode)
+            # If the barcode is correct, uses it to identify the item.
             elif self.item_data.item_exists(entered_barcode):
                 self.scanned_item = self.item_data.get_item_by_barcode(entered_barcode)
+            # If the barcode is known to be incorrect and only used for one item type, looks up the correct barcode.
             elif self.item_data.barcode_must_be_replaced(entered_barcode):
                 corrected_barcode = self.item_data.get_replacement_barcode(entered_barcode)
                 self.scanned_item = self.item_data.get_item_by_barcode(corrected_barcode)
+            # If the barcode is unknown, displays an error message.
             else:
                 show_warning("Ukendt stregkode", "Stregkoden er ukendt.")
                 return
         else:
             show_warning("Ugyldig stregkode", "Stregkoden er ikke gyldig.")
             return
+        # Populates the item info box with data, displays a preview of the label and moves focus to the next widget.
         self.item_data_display_box.load_data(self.scanned_item, entered_barcode)
         self.label_preview.update_image_preview(self.scanned_item.ean_13)
         self.number_input_entry_box.entry_box.setFocus()
         self.number_input_entry_box.entry_box.selectAll()
 
-    def print(self):
+    def get_item_info_from_user(self, entered_barcode: str) -> Cushion:
+        """Spawns a dialog box asking the user to select the correct item from a list."""
+        item_selection_dialog = MultipleBarcodeSelection(
+            self.item_data.multiple_choice_replacements[entered_barcode],
+            self.item_data,
+            self.sizes)
+        if item_selection_dialog.exec() == QDialog.DialogCode.Accepted:
+            corrected_barcode = item_selection_dialog.get_selected_item_barcode()
+            return self.item_data.get_item_by_barcode(corrected_barcode)
+
+    def print(self) -> None:
         # TODO: clean this up, add default printer
         image_to_print = QPixmap(f"Data/PNG/{self.scanned_item.ean_13}.png")
         printer = QPrinter()
@@ -544,7 +567,7 @@ class ManualTab(QWidget):
         layout.setSpacing(20)
         self.reset_combobox()
 
-    def change_number_type(self):
+    def change_number_type(self) -> None:
         """Changes the item list to use for the combobox according to which radio button is checked."""
         current_index = self.combobox.currentIndex()
         if self.old_new_radio_buttons.old_radio_button.isChecked():
@@ -555,14 +578,14 @@ class ManualTab(QWidget):
         self.update_combobox()
         self.combobox.setCurrentIndex(current_index)
 
-    def reset_combobox(self):
+    def reset_combobox(self) -> None:
         """Resets the combobox to its default state, with all item types present."""
         number_list = self.selected_number_type
         self.combobox.clear()
         for entry in number_list:
             self.combobox.addItem(entry)
 
-    def update_combobox(self):
+    def update_combobox(self) -> None:
         """Removes items from the Combobox if they don't contain all the words entered into the search field."""
         self.reset_combobox()
         search_words = self.search_entry_box.search_box.text().split(" ")
@@ -572,14 +595,14 @@ class ManualTab(QWidget):
                 if word.lower() not in self.combobox.itemText(i).lower():
                     self.combobox.removeItem(i)
 
-    def get_selected_item_barcode(self):
+    def get_selected_item_barcode(self) -> str:
         """Returns the barcode number of the currently selected item in the combobox."""
         item_number = self.combobox.currentText().split(" ")[0]
         for item in self.items.cushions:
             if item_number in [item.old_number, item.new_number]:
                 return item.ean_13
 
-    def update_preview(self):
+    def update_preview(self) -> None:
         barcode = self.get_selected_item_barcode()
         self.label_preview.update_image_preview(barcode)
 

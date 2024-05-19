@@ -1,3 +1,4 @@
+import json
 import os
 import pymupdf
 import sys
@@ -22,11 +23,12 @@ from PyQt6.QtWidgets import (
     QRadioButton,
     QButtonGroup,
     QDialog,
-    QDialogButtonBox
+    QDialogButtonBox,
+    QMenu
 )
 from PyQt6.QtCore import Qt, QSize, pyqtSignal
-from PyQt6.QtGui import QIcon, QGuiApplication, QFont, QKeyEvent, QPixmap, QPainter
-from PyQt6.QtPrintSupport import QPrinter, QPrintDialog
+from PyQt6.QtGui import QIcon, QGuiApplication, QFont, QKeyEvent, QPixmap, QPainter, QAction, QActionGroup
+from PyQt6.QtPrintSupport import QPrinter, QPrinterInfo, QPrintDialog
 
 
 def main():
@@ -35,7 +37,9 @@ def main():
     item_data = DataLoader("Data/Hay - Hynder.txt", "Data/Rettelser.txt")
     fonts = Fonts()
     sizes = Sizes()
-    main_window = MainWindow(fonts, sizes, item_data)
+    printers = Printers()
+    printers.load_printer_settings()
+    main_window = MainWindow(fonts, sizes, printers, item_data)
     main_window.scanner_tab.scan_entry_box.setFocus()
     main_window.show()
     app.exec()
@@ -196,22 +200,122 @@ class Sizes:
         self.combobox_height = 36
 
 
+class Printers:
+    def __init__(self):
+        self.available_printer_names = [printer.printerName() for printer in QPrinterInfo.availablePrinters()]
+        if len(self.available_printer_names) <= 0:
+            show_warning("Fejl", "Der er ingen printerenheder tilgængelige.\n"
+                                 "Programmet lukker nu.")
+            sys.exit(1)
+        self.selected_printer_name = None
+        self.load_printer_settings()
+        self.default_printer_name = QPrinterInfo.defaultPrinter().printerName()
+        if self.selected_printer_name not in self.available_printer_names:
+            self.selected_printer_name = self.default_printer_name
+
+    def print(self, image_to_print: QPixmap, copy_count: int) -> None:
+        printer = QPrinter()
+        if self.selected_printer_name is not None:
+            printer.setPrinterName(self.selected_printer_name)
+            page_rect = printer.pageRect(QPrinter.Unit.Millimeter)
+            # scaled_image_to_print = image_to_print.scaled(page_rect.size(), Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
+            painter = QPainter(printer)
+            for i in range(copy_count):
+                painter.drawPixmap(page_rect.topLeft(), image_to_print)
+                if i < copy_count - 1:
+                    printer.newPage()
+            painter.end()
+        else:
+            show_warning("Fejl", "Kan ikke printe: ingen printer valgt.")
+
+    def save_printer_settings(self):
+        try:
+            with open("Data/printer.json", "w") as out_file:
+                json.dump({"printer": self.selected_printer_name}, out_file)
+        except OSError:
+            show_warning("Fejl", "Indstillingen kan i øjeblikket ikke gemmes.")
+
+    def load_printer_settings(self):
+        try:
+            with open("Data/printer.json", "r") as in_file:
+                printer_settings = json.load(in_file)
+                loaded_printer_name = printer_settings.get("printer")
+                if loaded_printer_name in self.available_printer_names:
+                    self.selected_printer_name = loaded_printer_name
+                else:
+                    show_warning("Printer fejl", "Den foretrukne printer er ikke tilgængelig.\n"
+                                                 "Skifter til Windows standardprinter.")
+                    self.select_default_printer()
+        except FileNotFoundError:
+            self.select_default_printer()
+            self.save_printer_settings()
+
+    def set_selected_printer(self, printer_name: str) -> None:
+        if printer_name in self.available_printer_names:
+            self.selected_printer_name = printer_name
+            self.save_printer_settings()
+        else:
+            show_warning("Fejl", "Den valgte printer er i øjeblikket ikke tilgængelig.\n")
+
+    def select_default_printer(self) -> None:
+        self.selected_printer_name = self.default_printer_name
+
+
 class MainWindow(QMainWindow):
     """Main window, with a tabbed interface."""
-    def __init__(self, fonts: Fonts, sizes: Sizes, item_data: DataLoader):
+    def __init__(self, fonts: Fonts, sizes: Sizes, printers: Printers, item_data: DataLoader):
         super().__init__()
-        # Sets window properties
+        # Printer data.
+        self.printers = printers
+        # Sets window properties.
         self.setWindowTitle("Hyndescanner")
         self.setWindowIcon(QIcon(".\\Data\\barcode-scan.ico"))
         self.setFixedSize(*sizes.main_window)
+        # File menu.
+        menu = self.menuBar()
+        file_menu = menu.addMenu("&Fil")
+        # Creates a "Choose printer" submenu and adds it to the File menu.
+        printer_submenu = file_menu.addMenu("Vælg &printer")
+        # Creates a "Default printer" menu item and its associated action. When selected, it will set the Windows
+        # default printer as the printer to use, and set the corresponding menu items as checked.
+        self.default_printer_action = QAction("Windows Standardprinter", self, checkable=True)
+        self.default_printer_action.triggered.connect(self.select_default_printer)
+        printer_submenu.addAction(self.default_printer_action)
+        printer_submenu.addSeparator()
+        # Creates a QActionGroup for all printer devices; adds their corresponding menu items to the printer submenu.
+        self.printer_group = QActionGroup(self)
+        for printer_name in printers.available_printer_names:
+            action = QAction(printer_name, self, checkable=True)
+            action.triggered.connect(lambda _, printer=action.text(): self.select_printer(printer))
+            printer_submenu.addAction(action)
+            self.printer_group.addAction(action)
+        # Sets the printer submenu items' checked status according to the currently selected printer.
+        for printer_action in self.printer_group.actions():
+            if printer_action.text() == printers.selected_printer_name:
+                printer_action.setChecked(True)
+                self.default_printer_action.setChecked(printer_action.text() == printers.default_printer_name)
+                break
+        else:
+            self.default_printer_action.setChecked(True)
+        # Adds additional menus and items.
+        file_menu.addSeparator()
+        exit_action = QAction("&Afslut", self)
+        exit_action.triggered.connect(sys.exit)
+        exit_action.setShortcut("Ctrl+Q")
+        file_menu.addAction(exit_action)
+        edit_menu = menu.addMenu("&Rediger")
+        help_menu = menu.addMenu("&Hjælp")
+        about_action = QAction("&Om...", self)
+        help_menu.addAction(about_action)
+
         # Moves the window to the center of the screen
         screen = QGuiApplication.primaryScreen().geometry()
         center_pos_x = (screen.width() - self.width()) // 2
         center_pos_y = (screen.height() - self.height()) // 2
         self.move(center_pos_x, center_pos_y)
         # Instantiates the main widgets
-        self.scanner_tab = ScannerTab(fonts, sizes, item_data)
-        self.manuel_tab = ManualTab(fonts, sizes, item_data)
+        self.scanner_tab = ScannerTab(fonts, sizes, item_data, printers)
+        self.manuel_tab = ManualTab(fonts, sizes, item_data, printers)
         # Instantiates the tabs
         tab_widget = QTabWidget()
         tab_widget.setTabPosition(QTabWidget.TabPosition.North)
@@ -220,6 +324,25 @@ class MainWindow(QMainWindow):
         tab_widget.addTab(self.manuel_tab, "Manuel")
         # Sets the central widget
         self.setCentralWidget(tab_widget)
+
+    def select_default_printer(self):
+        """Sets the Windows default printers as the selected printer."""
+        self.printers.select_default_printer()
+        self.default_printer_action.setChecked(True)
+        # In the menu, sets the printer name that corresponds to the default printer as checked.
+        for printer_action in self.printer_group.actions():
+            if printer_action.text() == self.printers.default_printer_name:
+                printer_action.setChecked(True)
+
+    def select_printer(self, printer_name: str):
+        """Sets the chosen printer as selected."""
+        self.printers.set_selected_printer(printer_name)
+        # If the selected printer is the Windows default printers, sets the default one to checked as well.
+        self.default_printer_action.setChecked(printer_name == self.printers.default_printer_name)
+        # In the menu, sets the chosen printer name as checked.
+        for printer_action in self.printer_group.actions():
+            if printer_action.text() == printer_name:
+                printer_action.setChecked(True)
 
 
 class Button(QPushButton):
@@ -278,6 +401,9 @@ class NumberInputEntryBox(QWidget):
     @property
     def value(self) -> int:
         return int(self.entry_box.text())
+
+    def reset(self):
+        self.entry_box.setValue(1)
 
 
 class SearchEntryBox(QWidget):
@@ -353,6 +479,13 @@ class ItemDataDisplayBox(QWidget):
         else:
             self.ean13_data.setText(f"{scanned_barcode} rettes til {item_data.ean_13}")
 
+    def reset(self):
+        self.item_name_data.clear()
+        self.color_data.clear()
+        self.old_number_data.clear()
+        self.new_number_data.clear()
+        self.ean13_data.clear()
+
 
 class LabelPreview(QLabel):
     """Implements a widget showing a preview of the label to be printed."""
@@ -360,9 +493,9 @@ class LabelPreview(QLabel):
         super().__init__()
         self.setObjectName("label_preview")
         self.setFixedSize(*sizes.label_preview)
-        self.setText("Forhåndsvisning")
         self.setFont(fonts.prompt)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.reset()
 
     def update_image_preview(self, barcode: str) -> None:
         path_to_png = f"Data/PNG/{barcode}.png"
@@ -371,6 +504,9 @@ class LabelPreview(QLabel):
             Qt.AspectRatioMode.KeepAspectRatio,
             Qt.TransformationMode.SmoothTransformation)
         self.setPixmap(label_preview_pix)
+
+    def reset(self):
+        self.setText("Forhåndsvisning")
 
 
 class MultipleBarcodeSelection(QDialog):
@@ -440,7 +576,7 @@ class OldNewRadioButtons(QWidget):
 
 class ScannerTab(QWidget):
     """An interface for entering a barcode and choosing the number of labels to be printed."""
-    def __init__(self, fonts: Fonts, sizes: Sizes, item_data: DataLoader):
+    def __init__(self, fonts: Fonts, sizes: Sizes, item_data: DataLoader, printers: Printers):
         super().__init__()
         layout = QVBoxLayout(self)
         # "Scan an item" label
@@ -471,6 +607,7 @@ class ScannerTab(QWidget):
         # Item data
         self.sizes = sizes
         self.item_data = item_data
+        self.printers = printers
         self.scanned_item = None
 
     def validate_and_set_barcode(self) -> None:
@@ -514,24 +651,32 @@ class ScannerTab(QWidget):
             corrected_barcode = item_selection_dialog.get_selected_item_barcode()
             return self.item_data.get_item_by_barcode(corrected_barcode)
 
+    def clear_and_reset(self):
+        """Clears all data and resets the tab in preparation for new input."""
+        self.scan_entry_box.clear()
+        self.number_input_entry_box.reset()
+        self.item_data_display_box.reset()
+        self.label_preview.reset()
+        self.scan_entry_box.setFocus()
+
     def print(self) -> None:
-        # TODO: clean this up, add default printer
-        image_to_print = QPixmap(f"Data/PNG/{self.scanned_item.ean_13}.png")
-        printer = QPrinter()
-        print_dialog = QPrintDialog(printer, self)
-
-        if print_dialog.exec() == QPrintDialog.DialogCode.Accepted:
-            painter = QPainter(printer)
-
-            painter.drawPixmap(0, 0, image_to_print)
-            painter.end()
+        copy_count = self.number_input_entry_box.value
+        if self.scanned_item is not None:
+            image_to_print = QPixmap(f"Data/PNG/{self.scanned_item.ean_13}.png")
+            self.printers.print(image_to_print, copy_count)
+            self.clear_and_reset()
+        else:
+            show_warning("Fejl", "Du skal scanne en vare, før du printer.")
+            self.scan_entry_box.clear()
+            self.scan_entry_box.setFocus()
 
 
 class ManualTab(QWidget):
     """An interface for manually choosing the type and number of labels to be printed."""
-    def __init__(self, fonts: Fonts, sizes: Sizes, items: DataLoader):
+    def __init__(self, fonts: Fonts, sizes: Sizes, items: DataLoader, printers: Printers):
         super().__init__()
         self.items = items
+        self.printers = printers
         self.selected_number_type = items.old_number_combobox_entry_list
         layout = QVBoxLayout(self)
         # "Choose type" label
@@ -551,8 +696,9 @@ class ManualTab(QWidget):
         self.combobox.currentIndexChanged.connect(self.update_preview)
         # Print button
         self.print_manual_button = Button("Print", fonts, sizes)
+        self.print_manual_button.clicked.connect(self.print)
         # "Input amount" entry box
-        self.input_number_manual_widget = NumberInputEntryBox(fonts, sizes, self.print_manual_button)
+        self.number_input_entry_box = NumberInputEntryBox(fonts, sizes, self.print_manual_button)
         # Label preview box
         self.label_preview = LabelPreview(fonts, sizes)
         # Adds the widgets to the layout
@@ -560,11 +706,11 @@ class ManualTab(QWidget):
         layout.addWidget(self.search_entry_box, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.old_new_radio_buttons, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.combobox, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.input_number_manual_widget, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.number_input_entry_box, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.print_manual_button, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addStretch(1)
         layout.addWidget(self.label_preview, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.setSpacing(20)
+        layout.setSpacing(15)
         self.reset_combobox()
 
     def change_number_type(self) -> None:
@@ -605,6 +751,12 @@ class ManualTab(QWidget):
     def update_preview(self) -> None:
         barcode = self.get_selected_item_barcode()
         self.label_preview.update_image_preview(barcode)
+
+    def print(self) -> None:
+        copy_count = self.number_input_entry_box.value
+        selected_item_barcode = self.get_selected_item_barcode()
+        image_to_print = QPixmap(f"Data/PNG/{selected_item_barcode}.png")
+        self.printers.print(image_to_print, copy_count)
 
 
 if __name__ == "__main__":

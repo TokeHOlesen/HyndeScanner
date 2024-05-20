@@ -1,5 +1,7 @@
-.venv
+.venv/
+venv/
 build/
 dist/
 .idea/
+__pycache__/
 main.spec

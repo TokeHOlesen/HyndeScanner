@@ -23,12 +23,11 @@ from PyQt6.QtWidgets import (
     QRadioButton,
     QButtonGroup,
     QDialog,
-    QDialogButtonBox,
-    QMenu
+    QDialogButtonBox
 )
 from PyQt6.QtCore import Qt, QSize, pyqtSignal
 from PyQt6.QtGui import QIcon, QGuiApplication, QFont, QKeyEvent, QPixmap, QPainter, QAction, QActionGroup
-from PyQt6.QtPrintSupport import QPrinter, QPrinterInfo, QPrintDialog
+from PyQt6.QtPrintSupport import QPrinter, QPrinterInfo
 
 
 def main():
@@ -46,6 +45,7 @@ def main():
 
 
 def show_warning(title: str, message: str) -> None:
+    """Spawns a MessageBox with the given title and content."""
     message_box = QMessageBox()
     message_box.setWindowTitle(title)
     message_box.setText(message)
@@ -57,6 +57,7 @@ def show_warning(title: str, message: str) -> None:
 
 
 class Cushion:
+    """Describes a single item and all its properties."""
     def __init__(self, csv_line: str):
         csv_data = csv_line.split(";")
         self.old_number = csv_data[0]
@@ -67,7 +68,13 @@ class Cushion:
 
 
 class DataLoader:
+    """
+    Loads all the relevant data: the item info, the correction data, the labels. Generates label previews
+    and combobox contents.
+    """
     def __init__(self, bartender_file_path: str, corrections_file_path: str):
+        self.bartender_file_path = bartender_file_path
+        self.corrections_file_path = corrections_file_path
         # A list of Cushion class objects - one for each known item.
         self.cushions = []
         # A list of ean-13 numbers that must be directly replaced with another number, without user input.
@@ -110,7 +117,8 @@ class DataLoader:
             if not os.path.isfile(f"Data/PNG/{barcode}.png"):
                 self.convert_pdf_to_png(barcode)
 
-    def build_combobox_elements(self, number_type: str):
+    def build_combobox_elements(self, number_type: str) -> list:
+        """Builds a list of item data for the combobox in manual mode, using either old or new item numbers."""
         combobox_element_list = []
         for cushion in self.cushions:
             if number_type == "old":
@@ -168,15 +176,18 @@ class DataLoader:
 
 
 class PrintLogger:
-    @staticmethod
-    def write_to_log_file(cushion: Cushion, number: int, mode: str) -> None:
+    """Writes each print job details to a log file."""
+    path = "Data/log.txt"
+
+    @classmethod
+    def write_to_log_file(cls, cushion: Cushion, number: int, mode: str) -> None:
         log_file_line = str(datetime.now())[:-7]
         log_file_line += f": {number} x "
         log_file_line += f"{cushion.item_name}, {cushion.color}, {cushion.old_number}, {cushion.new_number}"
         log_file_line += f" ({mode})\n"
 
         try:
-            with open("Data/log.txt", "a+") as log_file:
+            with open(cls.path, "a+") as log_file:
                 log_file.write(log_file_line)
         except OSError:
             pass
@@ -229,6 +240,7 @@ class Printing:
             self.selected_printer_name = self.default_printer_name
 
     def print(self, image_to_print: QPixmap, copy_count: int) -> None:
+        """Prints the specified QPixmap a set number of times."""
         printer = QPrinter()
         if self.selected_printer_name is not None:
             printer.setPrinterName(self.selected_printer_name)
@@ -243,14 +255,19 @@ class Printing:
         else:
             show_warning("Fejl", "Kan ikke printe: ingen printer valgt.")
 
-    def save_printer_settings(self):
+    def save_printer_settings(self) -> None:
+        """Saves the selected printer to a file."""
         try:
             with open("Data/printer.json", "w") as out_file:
                 json.dump({"printer": self.selected_printer_name}, out_file)
         except OSError:
             show_warning("Fejl", "Indstillingen kan i øjeblikket ikke gemmes.")
 
-    def load_printer_settings(self):
+    def load_printer_settings(self) -> None:
+        """
+        Attempts to load the selected printer data from the file. If the file or the printer doesn't exist,
+        uses Windows default printer instead.
+        """
         try:
             with open("Data/printer.json", "r") as in_file:
                 printer_settings = json.load(in_file)
@@ -266,6 +283,7 @@ class Printing:
             self.save_printer_settings()
 
     def set_selected_printer(self, printer_name: str) -> None:
+        """Writes the selected printer name to the file."""
         if printer_name in self.available_printer_names:
             self.selected_printer_name = printer_name
             self.save_printer_settings()
@@ -273,6 +291,7 @@ class Printing:
             show_warning("Fejl", "Den valgte printer er i øjeblikket ikke tilgængelig.\n")
 
     def select_default_printer(self) -> None:
+        """Selects the Windows default printer."""
         self.selected_printer_name = self.default_printer_name
 
 
@@ -280,8 +299,9 @@ class MainWindow(QMainWindow):
     """Main window, with a tabbed interface."""
     def __init__(self, fonts: Fonts, sizes: Sizes, printers: Printing, item_data: DataLoader):
         super().__init__()
-        # Printer data.
+        self.sizes = sizes
         self.printers = printers
+        self.item_data = item_data
         # Sets window properties.
         self.setWindowTitle("Hyndescanner")
         self.setWindowIcon(QIcon(".\\Data\\barcode-scan.ico"))
@@ -312,12 +332,12 @@ class MainWindow(QMainWindow):
                 break
         else:
             self.default_printer_action.setChecked(True)
-        # Adds additional menus and items.
         file_menu.addSeparator()
         exit_action = QAction("&Afslut", self)
         exit_action.triggered.connect(sys.exit)
         exit_action.setShortcut("Ctrl+Q")
         file_menu.addAction(exit_action)
+        # Edit menu
         edit_menu = menu.addMenu("&Rediger")
         open_database_action = QAction("Vis &BarTender CSV-filen", self)
         open_corrections_action = QAction("Vis listen over rettelser", self)
@@ -329,6 +349,7 @@ class MainWindow(QMainWindow):
         open_database_action.triggered.connect(self.open_bartender_file)
         open_corrections_action.triggered.connect(self.open_corrections_file)
         open_logfile_action.triggered.connect(self.open_log_file)
+        # Help menu
         help_menu = menu.addMenu("&Hjælp")
         about_action = QAction("&Om...", self)
         about_action.triggered.connect(self.open_about_window)
@@ -350,9 +371,8 @@ class MainWindow(QMainWindow):
         tab_widget.addTab(self.manuel_tab, "Manuel")
         # Sets the central widget
         self.setCentralWidget(tab_widget)
-        self.sizes = sizes
 
-    def use_default_printer(self):
+    def use_default_printer(self) -> None:
         """Sets the Windows default printers as the selected printer."""
         self.printers.select_default_printer()
         self.default_printer_action.setChecked(True)
@@ -361,7 +381,7 @@ class MainWindow(QMainWindow):
             if printer_action.text() == self.printers.default_printer_name:
                 printer_action.setChecked(True)
 
-    def select_printer(self, printer_name: str):
+    def select_printer(self, printer_name: str) -> None:
         """Sets the chosen printer as selected."""
         self.printers.set_selected_printer(printer_name)
         # If the selected printer is the Windows default printers, sets the default one to checked as well.
@@ -371,19 +391,24 @@ class MainWindow(QMainWindow):
             if printer_action.text() == printer_name:
                 printer_action.setChecked(True)
 
-    @staticmethod
-    def open_bartender_file():
-        os.startfile("Data\Hay - Hynder.txt")
+    def open_bartender_file(self) -> None:
+        """Tells Windows to open the BarTender file."""
+        os.startfile(self.item_data.bartender_file_path.replace("/", "\\"))
+
+    def open_corrections_file(self) -> None:
+        """Tells Windows to open the corrections file."""
+        os.startfile(self.item_data.corrections_file_path.replace("/", "\\"))
 
     @staticmethod
-    def open_corrections_file():
-        os.startfile("Data\Rettelser.txt")
+    def open_log_file() -> None:
+        """Tells Windows to open the log file."""
+        try:
+            os.startfile(PrintLogger.path.replace("/", "\\"))
+        except FileNotFoundError:
+            show_warning("Fejl", "Logfilen findes ikke.")
 
-    @staticmethod
-    def open_log_file():
-        os.startfile("Data\log.txt")
-
-    def open_about_window(self):
+    def open_about_window(self) -> None:
+        """Opens the 'About' dialog window."""
         about_window = AboutWindow(self.sizes)
         about_window.exec()
 
@@ -439,17 +464,24 @@ class NumberInputEntryBox(QWidget):
         layout.addWidget(self.entry_box)
 
     def move_focus_to_button(self) -> None:
+        """Moves focus to the associated button (normally the tab's 'Print' button)."""
         self.target_button.setFocus()
 
     @property
     def value(self) -> int:
+        """Returns the contents of the number entry box."""
         return int(self.entry_box.text())
 
-    def reset(self):
+    def reset(self) -> None:
+        """Resets the number entry box to 1 (the lowest allowed value)."""
         self.entry_box.setValue(1)
 
 
 class SearchEntryBox(QWidget):
+    """
+    A search box consiting of a QLineEdit and a button to clear its contents.
+    Used to search for items by their names in manual mode.
+    """
     def __init__(self, fonts: Fonts, sizes: Sizes):
         super().__init__()
         layout = QHBoxLayout(self)
@@ -477,6 +509,7 @@ class SearchEntryBox(QWidget):
 
 
 class DataLabel(QLabel):
+    """A subclass of QLabel with a fixed font for displaying item data."""
     def __init__(self, fonts: Fonts, text=""):
         super().__init__(text)
         self.setFont(fonts.item_data)
@@ -522,7 +555,8 @@ class ItemDataDisplayBox(QWidget):
         else:
             self.ean13_data.setText(f"{scanned_barcode} rettes til {item_data.ean_13}")
 
-    def reset(self):
+    def reset(self) -> None:
+        """Clears the data display box."""
         self.item_name_data.clear()
         self.color_data.clear()
         self.old_number_data.clear()
@@ -541,6 +575,7 @@ class LabelPreview(QLabel):
         self.reset()
 
     def update_image_preview(self, barcode: str) -> None:
+        """Displays the label for the item with the passed barcode number."""
         path_to_png = f"Data/PNG/{barcode}.png"
         label_preview_pix = QPixmap(path_to_png).scaled(
             self.size(),
@@ -548,7 +583,8 @@ class LabelPreview(QLabel):
             Qt.TransformationMode.SmoothTransformation)
         self.setPixmap(label_preview_pix)
 
-    def reset(self):
+    def reset(self) -> None:
+        """Clears the preview display."""
         self.setText("Forhåndsvisning")
 
 
@@ -592,7 +628,6 @@ class MultipleBarcodeSelection(QDialog):
         layout.setSpacing(16)
         layout.setContentsMargins(20, 20, 20, 20)
 
-
     def get_selected_item_barcode(self) -> str:
         """Returns the barcode of the selected item."""
         # Gets the new item number from the currently selected combobox entry.
@@ -604,6 +639,7 @@ class MultipleBarcodeSelection(QDialog):
 
 
 class AboutWindow(QDialog):
+    """Displays an 'About' window."""
     def __init__(self, sizes: Sizes):
         super().__init__()
         self.setWindowTitle("Om Hyndescanneren")
@@ -626,7 +662,6 @@ class AboutWindow(QDialog):
         layout.addWidget(button_box, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.setSpacing(16)
         layout.setContentsMargins(20, 20, 20, 20)
-
 
 
 class OldNewRadioButtons(QWidget):
@@ -721,7 +756,7 @@ class ScannerTab(QWidget):
             corrected_barcode = item_selection_dialog.get_selected_item_barcode()
             return self.item_data.get_item_by_barcode(corrected_barcode)
 
-    def clear_and_reset(self):
+    def clear_and_reset(self) -> None:
         """Clears all data and resets the tab in preparation for new input."""
         self.scan_entry_box.clear()
         self.number_input_entry_box.reset()
@@ -730,6 +765,7 @@ class ScannerTab(QWidget):
         self.scan_entry_box.setFocus()
 
     def print(self) -> None:
+        """Prints the scanned item."""
         copy_count = self.number_input_entry_box.value
         if self.scanned_item is not None:
             image_to_print = QPixmap(f"Data/PNG/{self.scanned_item.ean_13}.png")
@@ -820,10 +856,12 @@ class ManualTab(QWidget):
                 return item.ean_13
 
     def update_preview(self) -> None:
+        """In the label preview box, displays the label for the item selected in the combobox."""
         barcode = self.get_selected_item_barcode()
         self.label_preview.update_image_preview(barcode)
 
     def print(self) -> None:
+        """Prints labels for the selected item."""
         copy_count = self.number_input_entry_box.value
         selected_item_barcode = self.get_selected_item_barcode()
         image_to_print = QPixmap(f"Data/PNG/{selected_item_barcode}.png")

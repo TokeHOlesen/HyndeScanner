@@ -5,5 +5,3 @@ dist/
 .idea/
 __pycache__/
 main.spec
-mainqt.py
-tmptst.py

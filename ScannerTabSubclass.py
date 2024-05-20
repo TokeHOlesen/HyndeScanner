@@ -34,7 +34,7 @@ class ScannerTab(QWidget):
         # Item data display box
         self.item_data_display_box = ItemDataDisplayBox(fonts, sizes)
         # Label preview box
-        self.label_preview = LabelPreview(fonts, sizes)
+        self.label_preview = LabelPreview(fonts, sizes, item_data)
         # Adds the widgets to the layout
         layout.addWidget(scan_prompt_label, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.scan_entry_box, alignment=Qt.AlignmentFlag.AlignCenter)

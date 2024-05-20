@@ -12,11 +12,11 @@ from PrintLoggerClass import PrintLogger
 
 class ManualTab(QWidget):
     """An interface for manually choosing the type and number of labels to be printed."""
-    def __init__(self, fonts: Fonts, sizes: Sizes, items: DataLoader, printers: Printing):
+    def __init__(self, fonts: Fonts, sizes: Sizes, item_data: DataLoader, printers: Printing):
         super().__init__()
-        self.items = items
+        self.items = item_data
         self.printers = printers
-        self.selected_number_type = items.old_number_combobox_entry_list
+        self.selected_number_type = item_data.old_number_combobox_entry_list
         layout = QVBoxLayout(self)
         # "Choose type" label
         choose_type_label = QLabel("Vælg type:")
@@ -39,7 +39,7 @@ class ManualTab(QWidget):
         # "Input amount" entry box
         self.number_input_entry_box = NumberInputEntryBox(fonts, sizes, self.print_manual_button)
         # Label preview box
-        self.label_preview = LabelPreview(fonts, sizes)
+        self.label_preview = LabelPreview(fonts, sizes, item_data)
         # Adds the widgets to the layout
         layout.addWidget(choose_type_label, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.search_entry_box, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -90,7 +90,8 @@ class ManualTab(QWidget):
     def update_preview(self) -> None:
         """In the label preview box, displays the label for the item selected in the combobox."""
         barcode = self.get_selected_item_barcode()
-        self.label_preview.update_image_preview(barcode)
+        if barcode is not None:
+            self.label_preview.update_image_preview(barcode)
 
     def print(self) -> None:
         """Prints labels for the selected item."""

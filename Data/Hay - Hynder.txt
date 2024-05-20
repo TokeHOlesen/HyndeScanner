@@ -1,4 +1,4 @@
-﻿Nummer;Beskrivelse;Beskrivelse 2;EAN-13;HAY Varenr.
+﻿Gammelt Varenummer;Varenavn;Farve;Stregkode;Nyt Varenummer
 005-812094/1009000;Palissade Dining Arm Chair Quilted Cushion;Olive textile;5710441272908;AB562-B281-AB70
 005-812094/1509000;Palissade Dining Arm Chair Quilted Cushion;Sky grey textile;5710441272915;AB562-B281-AB30
 005-812094/2009000;Palissade Dining Arm Chair Quilted Cushion;Anthracite textile;5710441272922;AB562-B281-AF12

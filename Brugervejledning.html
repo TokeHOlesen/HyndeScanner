@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Template</title>
+    <style>
+        body {
+            background-color: grey;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .container {
+            background-color: white;
+            width: 60%;
+            min-width: 800px;
+            padding: 20px;
+            box-sizing: border-box;
+            min-height: 100vh;
+        }
+        .code {
+            background-color: black;
+            color: white;
+            font-family: "Courier New", monospace;
+            padding: 16px;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>HyndeScanner 2.0</h1>
+    <br>
+    <p>For at programmet kan fungere, skal der være to filer til stede:</p>
+    <ul>
+        <li>HyndeData.txt</li>
+        <li>Rettelser.txt</li>
+    </ul>
+    <p>Begge filer skal befinde sig i mappen "Data". De kan også åbnes fra menuen "Rediger" i selve programmet.</p>
+    <p>Begge filer skal bruge "UTF-8 with BOM" - kodningssystemet. Det er standard for tekstfiler i Windows.</p>
+    <br>
+
+    <h2>HyndeData.txt</h2>
+    <p>Denne fil indeholder samtlige data omkring varerne. Den skal være i CSV-formatet, med semikolon som separator.</p>
+    <p>I de fleste tilfælde kan databasefilen fra BarTender bruges med få ændringer.</p>
+    <p>Filen skal bestå af mindst 5 kolonner med data:</p>
+    <ul>
+        <li>Gammelt Varenummer</li>
+        <li>Varenavn</li>
+        <li>Farve</li>
+        <li>Stregkode</li>
+        <li>Nyt Varenummer</li>
+    </ul>
+    <p>Rækkefølgen af kolonner er ligegyldig. Filen kan også indeholde flere kolonner med andet data (disse bliver ignoreret), men den skal indeholde alle de fem nævnte kolonner.</p>
+    <p>Filen kan for eksempel se sådan her ud:</p>
+    <div class="code">
+        <div>Gammelt Varenummer;Varenavn;Farve;Stregkode;Nyt Varenummer</div>
+        <div>005-812094/1009000;Palissade Dining Arm Chair Quilted Cushion;Olive textile;5710441272908;AB562-B281-AB70</div>
+        <div>005-812094/1509000;Palissade Dining Arm Chair Quilted Cushion;Sky grey textile;5710441272915;AB562-B281-AB30</div>
+        <div>;Soft Quilted Cushion for Palissade-Lounge Chair High CMHR;Iron red textile Interliner;5710441350941;AE014-B292-AO45</div>
+        <div>...</div>
+    </div>
+    <p>Hvis der ikke findes et gammelt varenummer til den pågældende vare, må datafeltet være tomt (ligesom i den sidste linje i eksemplet).</p>
+    <br><br>
+
+    <h2>Rettelser.txt</h2>
+    <p>Indimellem kan nogle af varerne være mærket med forkerte stregkoder. Denne fil skal indeholde instruktioner til programmet om, hvad det skal gøre, når en forkert (eller potentielt forkert) stregkode bliver scannet. Den skal også være i CSV-formatet, med semikolon som separator.</p>
+    <p>Der er tre forskellige slags mulige fejl:</p>
+    <ol>
+        <li>Den scannede stregkode er altid forkert, og der findes en bestemt stregkode, som den skal erstattes med;</li>
+        <li>Den scannede stregkode er forkert, men der er flere stregkoder, som den muligvis skal erstattes med. Det kan være tilfældet, hvis flere forskellige varer er blevet mærket med den samme forkerte stregkode;</li>
+        <li>Den scannede stregkode er ikke forkert, men der findes varer, som ved en fejl er blevet mærket med den. For eksempel kan en vis mængde varer med farven Olive være blevet mærket med stregkoden til farven Iron Red.</li>
+    </ol>
+    <br>
+
+    <h4>Hvis fejlen er af type 1:</h4>
+    <p>I filen "Rettelser.txt" skal der laves en linje for hver forkert stregkode, samt den tilsvarende rigtige stregkode. Linjen skal starte med "erstat". For eksempel:</p>
+    <div class="code">
+        <div>Fejltype;Forkert stregkode;Korrekt stregkode 1; Korrekt stregkode 2;...</div>
+        <div>erstat;5710441288190;5710441350521</div>
+        <div>erstat;5710441288206;5710441350545</div>
+        <div>erstat;5710441288213;5710441350552</div>
+        <div>...</div>
+    </div>
+    <p>I vores eksempel er stregkoden "5710441288190" forkert. Når den bliver scannet, erstattes den automatisk med "5710441350521".</p>
+    <p>Den øverste linje er en såkaldt header og må ikke ændres eller slettes; den skal helst se ud, ligesom i eksemplet ovenfor.</p>
+    <br>
+
+    <h4>Hvis fejlen er af type 2:</h4>
+    <p>I filen "Rettelser.txt" skal der laves en linje, der starter med "flere"; derefter kommer der den forkerte stregkode, og så alle de rigtige stregkoder, som kan erstatte den forkerte. For eksempel:</p>
+    <div class="code">
+        <div>Fejltype;Forkert stregkode;Korrekt stregkode 1; Korrekt stregkode 2;...</div>
+        <div>flere;5710441288190;5710441350521;5710441350606;5710441350682</div>
+        <div>flere;5610441290615;5710441351108;5710441350880</div>
+        <div>flere;5710441340881;5710441351078;5710441350903;5710441350927;5710441350941</div>
+        <div>...</div>
+    </div>
+    <p>Når brugeren scanner den forkerte stregkode, kommer der en dialogboks op på skærmen, hvor de bliver bedt om at identificere den scannede vare. Listen indeholder alle de stregkoder, der kommer efter den første, som vi ved, er forkert.</p>
+    <p>Det vil sige, at hvis brugeren scanner stregkoden 5610441290615, så bliver de bedt om at vælge, om den scannede vare i virkeligheden er 5710441351108 eller 5710441350880.</p>
+    <br>
+
+    <h4>Hvis fejlen er af type 3:</h4>
+    <p>Ligesom ved fejltype 2, skal der laves en linje i "Rettelser.txt", som starter med "flere", derefter stregkoden, som vi ved, har været misbrugt, og så de varer, som potentielt er blevet mærket med den. For eksempel:</p>
+    <div class="code">
+        <div>Fejltype;Forkert stregkode;Korrekt stregkode 1; Korrekt stregkode 2;...</div>
+        <div>flere;5710441351146;5710441351030;5710441350996</div>
+        <div>flere;5710441350842;5710441350705</div>
+        <div>flere;5710441350637;5710441350736;5710441350460;5710441350415</div>
+        <div>...</div>
+    </div>
+    <p>Bemærk, at i modsætning til fejltype 2, kan linjen indeholde kun to stregkoder. Det er fordi den første stregkode også er gyldig og kommer også med i listen i dialogboksen, når brugeren skal angive, hvilken varetype de har scannet. Ved fejltype 2 skal linjen bestå af mindst tre stregkoder, ellers er der tale om en direkte erstatning.</p>
+</div>
+
+</body>
+</html>

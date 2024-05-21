@@ -7,3 +7,7 @@ class Cushion:
         self.color = csv_data[column_name_indices["farve"]]
         self.ean_13 = csv_data[column_name_indices["stregkode"]]
         self.new_number = csv_data[column_name_indices["nyt varenummer"]]
+
+        # if there is no old number, uses the new number instead.
+        if self.old_number == "":
+            self.old_number = self.new_number

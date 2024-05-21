@@ -10,7 +10,7 @@ from MainWindowSubclass import MainWindow
 def main():
     app = QApplication([])
     app.setStyleSheet(styles.style_sheet)
-    item_data = DataLoader("Data/Hay - Hynder.txt", "Data/Rettelser.txt")
+    item_data = DataLoader("Data/HyndeData.txt", "Data/Rettelser.txt")
     fonts = Fonts()
     sizes = Sizes()
     printing = Printing()

@@ -101,8 +101,11 @@ class MainWindow(QMainWindow):
     def setup_help_menu(self, menu) -> None:
         """Sets up the Help menu."""
         help_menu = menu.addMenu("&Hjælp")
+        manual_action = QAction("&Brugervejledning", self)
+        manual_action.triggered.connect(self.open_manual)
         about_action = QAction("&Om...", self)
         about_action.triggered.connect(self.open_about_window)
+        help_menu.addAction(manual_action)
         help_menu.addAction(about_action)
 
     def setup_tabbed_interface(self) -> None:
@@ -147,7 +150,14 @@ class MainWindow(QMainWindow):
         try:
             os.startfile(PrintLogger.path.replace("/", "\\"))
         except FileNotFoundError:
-            show_warning("Fejl", "Logfilen findes ikke.")
+            show_warning("Fejl", "Logfilen kan ikke findes.")
+
+    def open_manual(self) -> None:
+        """Tells Windows to open the manual."""
+        try:
+            os.startfile(self.item_data.manual_file_path)
+        except FileNotFoundError:
+            show_warning("Fejl", "Brugervejledningen kan ikke findes.")
 
     def open_about_window(self) -> None:
         """Opens the 'About' dialog window."""

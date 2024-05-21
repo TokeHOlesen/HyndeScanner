@@ -14,6 +14,7 @@ class DataLoader:
     def __init__(self, bartender_file_path: str, corrections_file_path: str):
         self.bartender_file_path = bartender_file_path
         self.corrections_file_path = corrections_file_path
+        self.manual_file_path = "Brugervejledning.html"
         # A list of Cushion class objects - one for each known item.
         self.cushions = []
         # A list of ean-13 numbers that must be directly replaced with another number, without user input.

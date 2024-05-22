@@ -44,14 +44,14 @@ class DataLoader:
                         self.cushions.append(Cushion(line.strip(), column_name_indices))
                 # Catches the case where of one the column names is missing and the dict value is still None.
                 except TypeError:
-                    show_warning("Fejl", "BarTender CSV-filen er ugyldig.\n"
-                                         "Se venligst dokumentationen.")
+                    show_warning("Fejl", "HyndeData.txt er ugyldig.\n"
+                                         "Se venligst brugervejledningen.")
                     raise SystemExit
         except FileNotFoundError:
             show_warning("Fejl", "Kan ikke finde BarTender filen.")
             raise SystemExit
         except UnicodeDecodeError:
-            show_warning("Fejl", "BarTender CSV-filen kan ikke læses.\n"
+            show_warning("Fejl", "HyndeData.txt kan ikke læses.\n"
                                  "Sørg venligst for, at filen er i UTF-8 format med BOM.")
             raise SystemExit
         # Reads the corrections file and saves the wrong and correct barcodes as a key - value pair in self.corrections

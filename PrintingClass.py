@@ -1,6 +1,7 @@
 import json
 import sys
-from PyQt6.QtGui import QPixmap, QPainter
+from PyQt6.QtCore import QSizeF, Qt
+from PyQt6.QtGui import QPixmap, QPainter, QPageLayout, QPageSize
 from PyQt6.QtPrintSupport import QPrinter, QPrinterInfo
 
 from warning_messagebox import show_warning
@@ -24,11 +25,20 @@ class Printing:
         printer = QPrinter()
         if self.selected_printer_name is not None:
             printer.setPrinterName(self.selected_printer_name)
-            page_rect = printer.pageRect(QPrinter.Unit.Millimeter)
-            # scaled_image_to_print = image_to_print.scaled(page_rect.size(), Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
+            printer.setResolution(300)
+            # print(printer.resolution())
+            printer.setPageOrientation(QPageLayout.Orientation.Landscape)
+            # print(printer.pageLayout().orientation())
+            printer.setPageSize(QPageSize(QSizeF(80, 40), QPageSize.Unit.Millimeter))  # in mm
+            # print(printer.pageLayout().pageSize().size(QPageSize.Unit.Millimeter))
+            page_rect = printer.pageLayout().paintRect()  # in dots
+            # print(page_rect.size())
+            scaled_image_to_print = image_to_print.scaled(page_rect.size().toSize(),
+                                                          Qt.AspectRatioMode.KeepAspectRatioByExpanding,
+                                                          Qt.TransformationMode.SmoothTransformation)
             painter = QPainter(printer)
             for i in range(copy_count):
-                painter.drawPixmap(page_rect.topLeft(), image_to_print)
+                painter.drawPixmap(page_rect.topLeft(), scaled_image_to_print)
                 if i < copy_count - 1:
                     printer.newPage()
             painter.end()

@@ -15,8 +15,8 @@ class Printing:
                                  "Programmet lukker nu.")
             sys.exit(1)
         self.selected_printer_name = None
-        self.load_printer_settings()
         self.default_printer_name = QPrinterInfo.defaultPrinter().printerName()
+        self.load_printer_settings()
         if self.selected_printer_name not in self.available_printer_names:
             self.selected_printer_name = self.default_printer_name
 

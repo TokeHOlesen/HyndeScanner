@@ -14,7 +14,6 @@ def main():
     fonts = Fonts()
     sizes = Sizes()
     printing = Printing()
-    printing.load_printer_settings()
     main_window = MainWindow(fonts, sizes, printing, item_data)
     main_window.scanner_tab.scan_entry_box.setFocus()
     main_window.show()

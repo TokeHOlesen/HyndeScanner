@@ -14,17 +14,17 @@ class Fonts:
         self.ean13.setPointSize(36)
         self.amount.setPointSize(16)
         self.button.setPointSize(18)
-        self.item_data.setPointSize(11)
+        self.item_data.setPointSize(10)
         self.combobox.setPointSize(10)
 
 
 class Sizes:
     """A container for size constants for widgets used within the project."""
     def __init__(self):
-        self.main_window = (580, 710)
+        self.main_window = (580, 680)
         self.scan_entry_box = (360, 64)
         self.number_entry_box = (80, 32)
-        self.print_button = (140, 48)
+        self.print_button = (140, 40)
         self.dialog_box_ok_button = (80, 24)
         self.clear_button = (48, 24)
         self.data_box_column = 330

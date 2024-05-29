@@ -51,6 +51,7 @@ class ItemDataDisplayBox(QWidget):
         layout.addWidget(ean13_label, 4, 0)
         layout.addWidget(self.ean13_data, 4, 1)
         layout.addItem(QSpacerItem(70, 10, QSizePolicy.Policy.Maximum), 0, 2)
+        layout.setSpacing(0)
 
     def load_data(self, item_data: Cushion, scanned_barcode: str) -> None:
         """Loads a Cushion object and the scanned barcode and displays their data."""

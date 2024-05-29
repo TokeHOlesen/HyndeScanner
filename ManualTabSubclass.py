@@ -49,7 +49,7 @@ class ManualTab(QWidget):
         layout.addWidget(self.print_manual_button, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addStretch(1)
         layout.addWidget(self.label_preview, alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.setSpacing(15)
+        layout.setSpacing(13)
         self.reset_combobox()
 
     def change_number_type(self) -> None:

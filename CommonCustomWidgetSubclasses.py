@@ -1,20 +1,20 @@
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QKeyEvent, QPixmap
+from PyQt6.QtGui import QKeyEvent
 from PyQt6.QtWidgets import QWidget, QLabel, QPushButton, QHBoxLayout, QSpinBox
 
 from DataLoaderClass import DataLoader
-from FontsSizesClass import Fonts, Sizes
+from Constants import Fonts, Sizes
 
 
 class Button(QPushButton):
     """A subclass of QPushButton, adding a returnPressed signal and setting the button's properties."""
     returnPressed = pyqtSignal()
 
-    def __init__(self, text: str, fonts: Fonts, sizes: Sizes):
+    def __init__(self, text: str):
         super().__init__()
         self.setText(text)
-        self.setFixedSize(*sizes.print_button)
-        self.setFont(fonts.button)
+        self.setFixedSize(*Sizes.PRINT_BUTTON)
+        self.setFont(Fonts.BUTTON)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
     def keyPressEvent(self, event: QKeyEvent):
@@ -28,13 +28,13 @@ class SpinBox(QSpinBox):
     """A subclass of QSpinBox, adding a returnPressed signal and setting the widget's properties."""
     returnPressed = pyqtSignal()
 
-    def __init__(self, fonts: Fonts, sizes: Sizes):
+    def __init__(self):
         super().__init__()
         self.setMinimum(1)
         self.setMaximum(101)
         self.setValue(1)
-        self.setFont(fonts.amount)
-        self.setFixedSize(*sizes.number_entry_box)
+        self.setFont(Fonts.AMOUNT)
+        self.setFixedSize(*Sizes.NUMBER_ENTRY_BOX)
 
     def keyPressEvent(self, event: QKeyEvent):
         if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
@@ -45,13 +45,13 @@ class SpinBox(QSpinBox):
 
 class NumberInputEntryBox(QWidget):
     """A container for a label and a QLineEdit widget, next to each other. Used for manual data entry."""
-    def __init__(self, fonts: Fonts, sizes: Sizes, button: Button):
+    def __init__(self, button: Button):
         super().__init__()
         self.target_button = button
         layout = QHBoxLayout(self)
         label = QLabel("Ønsket antal: ")
-        label.setFont(fonts.amount)
-        self.entry_box = SpinBox(fonts, sizes)
+        label.setFont(Fonts.AMOUNT)
+        self.entry_box = SpinBox()
         self.entry_box.returnPressed.connect(self.move_focus_to_button)
         layout.addWidget(label)
         layout.addWidget(self.entry_box)
@@ -72,12 +72,12 @@ class NumberInputEntryBox(QWidget):
 
 class LabelPreview(QLabel):
     """Implements a widget showing a preview of the label to be printed."""
-    def __init__(self, fonts: Fonts, sizes: Sizes, item_data: DataLoader):
+    def __init__(self, item_data: DataLoader):
         super().__init__()
         self.item_data = item_data
         self.setObjectName("label_preview")
-        self.setFixedSize(*sizes.label_preview)
-        self.setFont(fonts.prompt)
+        self.setFixedSize(*Sizes.LABEL_PREVIEW)
+        self.setFont(Fonts.PROMPT)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.reset()
 

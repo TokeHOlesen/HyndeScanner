@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QMainWindow, QTabWidget
 
 from AboutWindowSubclass import AboutWindow
 from DataLoaderClass import DataLoader
-from FontsSizesClass import Fonts, Sizes
+from Constants import Sizes, VERSION
 from ManualTabSubclass import ManualTab
 from PrintingClass import Printing
 from PrintLoggerClass import PrintLogger
@@ -15,14 +15,13 @@ from warning_messagebox import show_warning
 
 class MainWindow(QMainWindow):
     """Main window, with a tabbed interface."""
-    def __init__(self, fonts: Fonts, sizes: Sizes, printers: Printing, item_data: DataLoader):
+    def __init__(self, printers: Printing, item_data: DataLoader):
         super().__init__()
-        self.sizes = sizes
         self.printers = printers
         self.item_data = item_data
         self.set_window_properties()
-        self.scanner_tab = ScannerTab(fonts, sizes, item_data, printers)
-        self.manuel_tab = ManualTab(fonts, sizes, item_data, printers)
+        self.scanner_tab = ScannerTab(item_data, printers)
+        self.manuel_tab = ManualTab(item_data, printers)
         self.setup_tabbed_interface()
         # Creates a "Default printer" menu item and its associated action.
         # When selected, it will set the Windows default printer as the printer to use.
@@ -38,18 +37,18 @@ class MainWindow(QMainWindow):
 
     def set_window_properties(self) -> None:
         """Sets the window name, icon and size, and sets its position to the center of the screen."""
-        self.setWindowTitle("Hyndescanner")
+        self.setWindowTitle(f"Hyndescanner {VERSION}")
         self.setWindowIcon(QIcon(".\\Data\\barcode-scan.ico"))
-        self.setFixedSize(*self.sizes.main_window)
+        self.setFixedSize(*Sizes.MAIN_WINDOW)
         screen = QGuiApplication.primaryScreen().geometry()
         center_pos_x = (screen.width() - self.width()) // 2
-        center_pos_y = (screen.height() - self.height()) // 2
+        center_pos_y = (screen.height() - self.height()) // 2 - Sizes.TASKBAR_OFFSET
         self.move(center_pos_x, center_pos_y)
 
     def setup_file_menu(self, menu) -> None:
         """
         Adds the File menu elements - a 'Choose printer' submenu and an Exit command.
-        The 'Choose printer' submenu gets populated with all printers available on the system.
+        The 'Choose printer' submenu gets populated with all printers available in the system.
         If the user previously selected a printer, it will be set as selected; otherwise, the Windows default printer
         will be used.
         Puts a checkmark next to the selected printer's name.
@@ -87,9 +86,9 @@ class MainWindow(QMainWindow):
     def setup_edit_menu(self, menu) -> None:
         """Sets up an Edit menu, letting the user open the associated text files."""
         edit_menu = menu.addMenu("&Rediger")
-        open_database_action = QAction("Vis &BarTender CSV-filen", self)
-        open_corrections_action = QAction("Vis listen over rettelser", self)
-        open_logfile_action = QAction("Vis logfilen", self)
+        open_database_action = QAction("Åbn &BarTender CSV-filen", self)
+        open_corrections_action = QAction("Åbn listen over rettelser", self)
+        open_logfile_action = QAction("Åbn logfilen", self)
         edit_menu.addAction(open_database_action)
         edit_menu.addAction(open_corrections_action)
         edit_menu.addSeparator()
@@ -103,7 +102,7 @@ class MainWindow(QMainWindow):
         help_menu = menu.addMenu("&Hjælp")
         manual_action = QAction("&Brugervejledning", self)
         manual_action.triggered.connect(self.open_manual)
-        about_action = QAction("&Om...", self)
+        about_action = QAction("&Om", self)
         about_action.triggered.connect(self.open_about_window)
         help_menu.addAction(manual_action)
         help_menu.addAction(about_action)
@@ -161,5 +160,5 @@ class MainWindow(QMainWindow):
 
     def open_about_window(self) -> None:
         """Opens the 'About' dialog window."""
-        about_window = AboutWindow(self.sizes)
+        about_window = AboutWindow()
         about_window.exec()

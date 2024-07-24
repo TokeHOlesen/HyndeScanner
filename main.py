@@ -2,7 +2,6 @@ from PyQt6.QtWidgets import QApplication
 
 import styles
 from DataLoaderClass import DataLoader
-from FontsSizesClass import Fonts, Sizes
 from PrintingClass import Printing
 from MainWindowSubclass import MainWindow
 
@@ -11,10 +10,8 @@ def main():
     app = QApplication([])
     app.setStyleSheet(styles.style_sheet)
     item_data = DataLoader("Data/HyndeData.txt", "Data/Rettelser.txt")
-    fonts = Fonts()
-    sizes = Sizes()
     printing = Printing()
-    main_window = MainWindow(fonts, sizes, printing, item_data)
+    main_window = MainWindow(printing, item_data)
     main_window.scanner_tab.scan_entry_box.setFocus()
     main_window.show()
     app.exec()

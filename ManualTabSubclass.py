@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QComboBox
 
 from CommonCustomWidgetSubclasses import Button, NumberInputEntryBox, LabelPreview
 from DataLoaderClass import DataLoader
-from FontsSizesClass import Fonts, Sizes
+from Constants import Fonts, Sizes
 from PrintingClass import Printing
 from ManualCustomWidgetSubclasses import SearchEntryBox, OldNewRadioButtons
 from PrintLoggerClass import PrintLogger
@@ -12,7 +12,7 @@ from PrintLoggerClass import PrintLogger
 
 class ManualTab(QWidget):
     """An interface for manually choosing the type and number of labels to be printed."""
-    def __init__(self, fonts: Fonts, sizes: Sizes, item_data: DataLoader, printers: Printing):
+    def __init__(self, item_data: DataLoader, printers: Printing):
         super().__init__()
         self.items = item_data
         self.printers = printers
@@ -20,26 +20,26 @@ class ManualTab(QWidget):
         layout = QVBoxLayout(self)
         # "Choose type" label
         choose_type_label = QLabel("Vælg type:")
-        choose_type_label.setFont(fonts.prompt)
+        choose_type_label.setFont(Fonts.PROMPT)
         # Text search box
-        self.search_entry_box = SearchEntryBox(fonts, sizes)
+        self.search_entry_box = SearchEntryBox()
         self.search_entry_box.search_box.textChanged.connect(self.update_combobox)
         # Old/New number selection radio buttons
         self.old_new_radio_buttons = OldNewRadioButtons()
         self.old_new_radio_buttons.old_new_radio_btns.buttonClicked.connect(self.change_number_type)
         # item selection combo box
         self.combobox = QComboBox()
-        self.combobox.setMinimumWidth(sizes.combobox_width)
-        self.combobox.setMinimumHeight(sizes.combobox_height)
-        self.combobox.setFont(fonts.combobox)
+        self.combobox.setMinimumWidth(Sizes.COMBOBOX_WIDTH)
+        self.combobox.setMinimumHeight(Sizes.COMBOBOX_HEIGHT)
+        self.combobox.setFont(Fonts.COMBOBOX)
         self.combobox.currentIndexChanged.connect(self.update_preview)
         # Print button
-        self.print_manual_button = Button("Print", fonts, sizes)
+        self.print_manual_button = Button("Print")
         self.print_manual_button.clicked.connect(self.print)
         # "Input amount" entry box
-        self.number_input_entry_box = NumberInputEntryBox(fonts, sizes, self.print_manual_button)
+        self.number_input_entry_box = NumberInputEntryBox(self.print_manual_button)
         # Label preview box
-        self.label_preview = LabelPreview(fonts, sizes, item_data)
+        self.label_preview = LabelPreview(item_data)
         # Adds the widgets to the layout
         layout.addWidget(choose_type_label, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.search_entry_box, alignment=Qt.AlignmentFlag.AlignCenter)

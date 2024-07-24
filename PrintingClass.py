@@ -1,7 +1,6 @@
 import json
 import sys
-from PyQt6.QtCore import QSizeF, Qt
-from PyQt6.QtGui import QPixmap, QPainter, QPageLayout, QPageSize
+from PyQt6.QtGui import QPixmap, QPainter
 from PyQt6.QtPrintSupport import QPrinter, QPrinterInfo
 
 from warning_messagebox import show_warning

@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QRadioButton, QButtonGroup
 
 from CommonCustomWidgetSubclasses import Button
-from FontsSizesClass import Fonts, Sizes
+from Constants import Fonts, Sizes
 
 
 class SearchEntryBox(QWidget):
@@ -9,17 +9,17 @@ class SearchEntryBox(QWidget):
     A search box consiting of a QLineEdit and a button to clear its contents.
     Used to search for items by their names in manual mode.
     """
-    def __init__(self, fonts: Fonts, sizes: Sizes):
+    def __init__(self):
         super().__init__()
         layout = QHBoxLayout(self)
         label = QLabel("Søg:")
-        label.setFont(fonts.combobox)
+        label.setFont(Fonts.COMBOBOX)
         self.search_box = QLineEdit()
-        self.search_box.setFixedWidth(sizes.search_box_width)
+        self.search_box.setFixedWidth(Sizes.SEARCH_BOX_WIDTH)
         self.search_box.textChanged.connect(self.update_clear_button_state)
-        self.clear_button = Button("Ryd", fonts, sizes)
-        self.clear_button.setFont(fonts.combobox)
-        self.clear_button.setFixedSize(*sizes.clear_button)
+        self.clear_button = Button("Ryd")
+        self.clear_button.setFont(Fonts.COMBOBOX)
+        self.clear_button.setFixedSize(*Sizes.CLEAR_BUTTON)
         self.clear_button.clicked.connect(self.clear_entry_box)
         self.clear_button.setEnabled(False)
         layout.addWidget(label)

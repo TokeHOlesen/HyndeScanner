@@ -14,32 +14,32 @@ from PyQt6.QtGui import QIcon
 
 from CushionClass import Cushion
 from DataLoaderClass import DataLoader
-from FontsSizesClass import Fonts, Sizes
+from Constants import Fonts, Sizes
 
 
 class DataLabel(QLabel):
     """A subclass of QLabel with a fixed font for displaying item data."""
-    def __init__(self, fonts: Fonts, text=""):
+    def __init__(self, text=""):
         super().__init__(text)
-        self.setFont(fonts.item_data)
+        self.setFont(Fonts.ITEM_DATA)
 
 
 class ItemDataDisplayBox(QWidget):
     """Displays the item's data, within a grid layout."""
-    def __init__(self, fonts: Fonts, sizes: Sizes):
+    def __init__(self):
         super().__init__()
         layout = QGridLayout(self)
-        layout.setColumnMinimumWidth(1, sizes.data_box_column)
-        item_name_label = DataLabel(fonts, "Varenavn:")
-        self.item_name_data = DataLabel(fonts)
-        color_label = DataLabel(fonts, "Farve:")
-        self.color_data = DataLabel(fonts)
-        old_number_label = DataLabel(fonts, "Gammelt nummer:")
-        self.old_number_data = DataLabel(fonts)
-        new_number_label = DataLabel(fonts, "Nyt nummer:")
-        self.new_number_data = DataLabel(fonts)
-        ean13_label = DataLabel(fonts, "Stregkode:")
-        self.ean13_data = DataLabel(fonts)
+        layout.setColumnMinimumWidth(1, Sizes.DATA_BOX_COLUMN)
+        item_name_label = DataLabel("Varenavn:")
+        self.item_name_data = DataLabel()
+        color_label = DataLabel("Farve:")
+        self.color_data = DataLabel()
+        old_number_label = DataLabel("Gammelt nummer:")
+        self.old_number_data = DataLabel()
+        new_number_label = DataLabel("Nyt nummer:")
+        self.new_number_data = DataLabel()
+        ean13_label = DataLabel("Stregkode:")
+        self.ean13_data = DataLabel()
         layout.addWidget(item_name_label, 0, 0)
         layout.addWidget(self.item_name_data, 0, 1)
         layout.addWidget(color_label, 1, 0)
@@ -79,7 +79,7 @@ class MultipleBarcodeSelection(QDialog):
     Spawns a dialog box asking the user to identify the scanned item.
     This is necessary if several different item types have been labeled with the same barcode by mistake.
     """
-    def __init__(self, barcode_list: list, items: DataLoader, sizes: Sizes) -> None:
+    def __init__(self, barcode_list: list, items: DataLoader) -> None:
         super().__init__()
         self.setWindowIcon(QIcon(".\\Data\\barcode-scan.ico"))
         # Disables the window closing "X" - the window can't be dismissed without selecting an item.
@@ -104,7 +104,7 @@ class MultipleBarcodeSelection(QDialog):
         self.combobox = QComboBox()
         self.combobox.addItems(combobox_entries)
         button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
-        button_box.button(QDialogButtonBox.StandardButton.Ok).setFixedSize(*sizes.dialog_box_ok_button)
+        button_box.button(QDialogButtonBox.StandardButton.Ok).setFixedSize(*Sizes.DIALOG_BOX_OK_BUTTON)
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
         layout.addWidget(label)

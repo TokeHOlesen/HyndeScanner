@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QLineEdit, QDialog
 from CommonCustomWidgetSubclasses import Button, NumberInputEntryBox, LabelPreview
 from CushionClass import Cushion
 from DataLoaderClass import DataLoader
-from FontsSizesClass import Fonts, Sizes
+from Constants import Fonts, Sizes
 from ScannerCustomWidgetSubclasses import ItemDataDisplayBox, MultipleBarcodeSelection
 from PrintingClass import Printing
 from PrintLoggerClass import PrintLogger
@@ -14,27 +14,27 @@ from warning_messagebox import show_warning
 
 class ScannerTab(QWidget):
     """An interface for entering a barcode and choosing the number of labels to be printed."""
-    def __init__(self, fonts: Fonts, sizes: Sizes, item_data: DataLoader, printers: Printing):
+    def __init__(self, item_data: DataLoader, printers: Printing):
         super().__init__()
         layout = QVBoxLayout(self)
         # "Scan an item" label
         scan_prompt_label = QLabel("Scan en stregkode:")
-        scan_prompt_label.setFont(fonts.prompt)
+        scan_prompt_label.setFont(Fonts.PROMPT)
         # Scan entry box
         self.scan_entry_box = QLineEdit()
-        self.scan_entry_box.setFixedSize(*sizes.scan_entry_box)
-        self.scan_entry_box.setFont(fonts.ean13)
+        self.scan_entry_box.setFixedSize(*Sizes.SCAN_ENTRY_BOX)
+        self.scan_entry_box.setFont(Fonts.EAN13)
         self.scan_entry_box.returnPressed.connect(self.validate_and_set_barcode)
         # Print button
-        self.print_button = Button("Print", fonts, sizes)
+        self.print_button = Button("Print")
         self.print_button.returnPressed.connect(self.print)
         self.print_button.clicked.connect(self.print)
         # "Input amount" entry box
-        self.number_input_entry_box = NumberInputEntryBox(fonts, sizes, self.print_button)
+        self.number_input_entry_box = NumberInputEntryBox(self.print_button)
         # Item data display box
-        self.item_data_display_box = ItemDataDisplayBox(fonts, sizes)
+        self.item_data_display_box = ItemDataDisplayBox()
         # Label preview box
-        self.label_preview = LabelPreview(fonts, sizes, item_data)
+        self.label_preview = LabelPreview(item_data)
         # Adds the widgets to the layout
         layout.addWidget(scan_prompt_label, alignment=Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.scan_entry_box, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -43,7 +43,6 @@ class ScannerTab(QWidget):
         layout.addWidget(self.item_data_display_box)
         layout.addWidget(self.label_preview, alignment=Qt.AlignmentFlag.AlignCenter)
         # Item data
-        self.sizes = sizes
         self.item_data = item_data
         self.printers = printers
         self.scanned_item = None

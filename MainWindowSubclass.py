@@ -86,9 +86,9 @@ class MainWindow(QMainWindow):
     def setup_edit_menu(self, menu) -> None:
         """Sets up an Edit menu, letting the user open the associated text files."""
         edit_menu = menu.addMenu("&Rediger")
-        open_database_action = QAction("Åbn &BarTender CSV-filen", self)
-        open_corrections_action = QAction("Åbn listen over rettelser", self)
-        open_logfile_action = QAction("Åbn logfilen", self)
+        open_database_action = QAction("Åbn filen med &varedata", self)
+        open_corrections_action = QAction("Åbn &nummerkorrektionsfilen", self)
+        open_logfile_action = QAction("Åbn &logfilen", self)
         edit_menu.addAction(open_database_action)
         edit_menu.addAction(open_corrections_action)
         edit_menu.addSeparator()
@@ -137,17 +137,17 @@ class MainWindow(QMainWindow):
 
     def open_bartender_file(self) -> None:
         """Tells Windows to open the BarTender file."""
-        os.startfile(self.item_data.bartender_file_path.replace("/", "\\"))
+        os.startfile(self.item_data.bartender_file_path)
 
     def open_corrections_file(self) -> None:
         """Tells Windows to open the corrections file."""
-        os.startfile(self.item_data.corrections_file_path.replace("/", "\\"))
+        os.startfile(self.item_data.corrections_file_path)
 
     @staticmethod
     def open_log_file() -> None:
         """Tells Windows to open the log file."""
         try:
-            os.startfile(PrintLogger.path.replace("/", "\\"))
+            os.startfile(PrintLogger.path)
         except FileNotFoundError:
             show_warning("Fejl", "Logfilen kan ikke findes.")
 
@@ -158,7 +158,8 @@ class MainWindow(QMainWindow):
         except FileNotFoundError:
             show_warning("Fejl", "Brugervejledningen kan ikke findes.")
 
-    def open_about_window(self) -> None:
+    @staticmethod
+    def open_about_window() -> None:
         """Opens the 'About' dialog window."""
         about_window = AboutWindow()
         about_window.exec()

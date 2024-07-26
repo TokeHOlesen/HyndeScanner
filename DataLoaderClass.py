@@ -1,5 +1,6 @@
 import os
 import pymupdf
+from pathlib import Path
 from PyQt6.QtGui import QPixmap
 
 from CushionClass import Cushion
@@ -12,9 +13,9 @@ class DataLoader:
     and combobox contents.
     """
     def __init__(self, bartender_file_path: str, corrections_file_path: str):
-        self.bartender_file_path = bartender_file_path
-        self.corrections_file_path = corrections_file_path
-        self.manual_file_path = "Brugervejledning.html"
+        self.bartender_file_path = Path(bartender_file_path)
+        self.corrections_file_path = Path(corrections_file_path)
+        self.manual_file_path = Path("Brugervejledning.html")
         # A list of Cushion class objects - one for each known item.
         self.cushions = []
         # A list of ean-13 numbers that must be directly replaced with another number, without user input.
@@ -123,9 +124,7 @@ class DataLoader:
 
     def barcode_must_be_replaced(self, barcode: str) -> bool:
         """Returns true if the barcode exists and is known to be incorrect."""
-        if barcode in self.replacements:
-            return True
-        return False
+        return barcode in self.replacements
 
     def get_replacement_barcode(self, barcode: str) -> str:
         """Returns the correct version of an incorrect barcode."""
@@ -136,6 +135,4 @@ class DataLoader:
         Returns true if the barcode exists, is known to potentially be incorrect and there is more than one
         possible replacement; user input is necessary.
         """
-        if barcode in self.multiple_choice_replacements:
-            return True
-        return False
+        return barcode in self.multiple_choice_replacements

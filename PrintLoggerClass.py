@@ -1,10 +1,11 @@
 from datetime import datetime
+from pathlib import Path
 from CushionClass import Cushion
 
 
 class PrintLogger:
     """Writes each print job details to a log file."""
-    path = "Data/log.txt"
+    path = Path("Data/log.txt")
 
     @classmethod
     def write_to_log_file(cls, cushion: Cushion, number: int, mode: str) -> None:

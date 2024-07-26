@@ -82,8 +82,7 @@ class ScannerTab(QWidget):
         """Spawns a dialog box asking the user to select the correct item from a list."""
         item_selection_dialog = MultipleBarcodeSelection(
             self.item_data.multiple_choice_replacements[entered_barcode],
-            self.item_data,
-            self.sizes)
+            self.item_data)
         if item_selection_dialog.exec() == QDialog.DialogCode.Accepted:
             corrected_barcode = item_selection_dialog.get_selected_item_barcode()
             return self.item_data.get_item_by_barcode(corrected_barcode)

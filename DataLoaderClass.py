@@ -1,3 +1,4 @@
+import chardet
 import os
 import pymupdf
 from pathlib import Path
@@ -25,9 +26,15 @@ class DataLoader:
         self.multiple_choice_replacements = {}
         # A dictionary with barcode numbers as keys and label graphics as QPixmaps as values.
         self.label_pixmaps = {}
-        # Reads the BarTender file and constructs a Cushion object from each line; appends them to self.cushions
+
         try:
-            with open(bartender_file_path, "r", encoding="utf-8-sig") as bartender_file:
+            # Attempts to identify the encoding of the csv data file
+            with open(bartender_file_path, "rb") as item_data_ident_file:
+                bartender_file_data = item_data_ident_file.read()
+                bartender_file_encoding = chardet.detect(bartender_file_data)
+
+            # Reads the BarTender file and constructs a Cushion object from each line; appends them to self.cushions
+            with open(bartender_file_path, "r", encoding=bartender_file_encoding["encoding"]) as bartender_file:
                 csv_header = bartender_file.readline().lower()
                 csv_column_names = csv_header.strip().split(";")
                 column_name_indices = {
@@ -57,7 +64,12 @@ class DataLoader:
             raise SystemExit
         # Reads the corrections file and saves the wrong and correct barcodes as a key - value pair in self.corrections
         try:
-            with open(corrections_file_path, "r") as corrections_file:
+            # Attempts to identify the encoding of the csv data file
+            with open(corrections_file_path, "rb") as corrections_ident_file:
+                corrections_file_data = corrections_ident_file.read()
+                corrections_file_encoding = chardet.detect(corrections_file_data)
+
+            with open(corrections_file_path, "r", encoding=corrections_file_encoding["encoding"]) as corrections_file:
                 next(corrections_file)
                 for line in corrections_file:
                     line = line.strip().split(";")

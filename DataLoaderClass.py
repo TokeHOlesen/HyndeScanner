@@ -61,15 +61,14 @@ class DataLoader:
                 corrections_file_encoding = chardet.detect(corrections_file_data)
 
             with open(corrections_file_path, "r", encoding=corrections_file_encoding["encoding"]) as corrections_file:
-                next(corrections_file)
-                for line in corrections_file:
-                    line = line.strip().split(";")
-                    if line[0] == "erstat":
-                        wrong_barcode = line[1]
-                        correct_barcode = line[2]
+                csv_reader = csv.reader(corrections_file, delimiter=";")
+                for row in csv_reader:
+                    if row[0] == "erstat":
+                        wrong_barcode = row[1]
+                        correct_barcode = row[2]
                         self.replacements[wrong_barcode] = correct_barcode
-                    elif line[0] == "flere":
-                        self.multiple_choice_replacements[line[1]] = line[1:]
+                    elif row[0] == "flere":
+                        self.multiple_choice_replacements[row[1]] = row[1:]
         except FileNotFoundError:
             show_warning("Fejl", "Filen \"Rettelser.txt\" findes ikke.")
             raise SystemExit

@@ -1,4 +1,5 @@
 import chardet
+import csv
 import os
 import pymupdf
 from pathlib import Path
@@ -35,33 +36,23 @@ class DataLoader:
 
             # Reads the BarTender file and constructs a Cushion object from each line; appends them to self.cushions
             with open(bartender_file_path, "r", encoding=bartender_file_encoding["encoding"]) as bartender_file:
-                csv_header = bartender_file.readline().lower()
-                csv_column_names = csv_header.strip().split(";")
-                column_name_indices = {
-                    "gammelt varenummer": None,
-                    "varenavn": None,
-                    "farve": None,
-                    "stregkode": None,
-                    "nyt varenummer": None
-                }
-                for i, column_name in enumerate(csv_column_names):
-                    if column_name in column_name_indices:
-                        column_name_indices[column_name] = i
-                try:
-                    for line in bartender_file:
-                        self.cushions.append(Cushion(line.strip(), column_name_indices))
-                # Catches the case where of one the column names is missing and the dict value is still None.
-                except TypeError:
-                    show_warning("Fejl", "HyndeData.txt er ugyldig.\n"
-                                         "Se venligst brugervejledningen.")
-                    raise SystemExit
+                csv_reader = csv.DictReader(bartender_file, delimiter=";")
+                csv_reader.fieldnames = [fieldname.lower() for fieldname in csv_reader.fieldnames]
+                for fieldname in ["gammelt varenummer", "varenavn", "farve", "stregkode", "nyt varenummer"]:
+                    if fieldname not in csv_reader.fieldnames:
+                        raise ValueError
+
+                for row in csv_reader:
+                    self.cushions.append(Cushion(row))
+
         except FileNotFoundError:
             show_warning("Fejl", "Kan ikke finde BarTender filen.")
             raise SystemExit
-        except UnicodeDecodeError:
-            show_warning("Fejl", "HyndeData.txt kan ikke læses.\n"
-                                 "Sørg venligst for, at filen er i UTF-8 format med BOM.")
+        except ValueError:
+            show_warning("Fejl", "HyndeData.txt er ugyldig.\n"
+                                 "Se venligst brugervejledningen.")
             raise SystemExit
+
         # Reads the corrections file and saves the wrong and correct barcodes as a key - value pair in self.corrections
         try:
             # Attempts to identify the encoding of the csv data file

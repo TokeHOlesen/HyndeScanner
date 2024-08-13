@@ -1,6 +1,6 @@
 from PyQt6.QtGui import QFont
 
-VERSION = "2.0.1"
+VERSION = "2.1"
 
 
 class Fonts:
